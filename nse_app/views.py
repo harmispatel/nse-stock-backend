@@ -11,6 +11,7 @@ from django.http import HttpResponse
 import pytz
 
 def home(request):
+    # This is in localbranch
     data = stock_detail.objects.select_related('percentage').all().order_by("-buy_time")
     paginator = Paginator(data, 25)
     page_number = request.GET.get('page')
