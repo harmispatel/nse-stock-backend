@@ -3,9 +3,9 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
 class MyPaginationClass(PageNumberPagination):
-    page_size = 10  # Number of items to be included in each page
-    page_size_query_param = 'page_size'  # Parameter to specify the page size
-    max_page_size = 100  # Maximum page size allowed
+    page_size = 10 
+    page_size_query_param = 'page_size'
+    max_page_size = 100  
 
     def get_paginated_response(self, data):
         return Response({

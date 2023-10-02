@@ -6,7 +6,6 @@ from .models import *
 class settingSerializer(serializers.ModelSerializer):
     class Meta:
         model = nse_setting
-        # fields = "__all__"
         exclude = ['you_can_buy']
 
 class stockListSerializer(serializers.ModelSerializer):
@@ -16,7 +15,6 @@ class stockListSerializer(serializers.ModelSerializer):
     class Meta:
         model = stock_detail
         fields = "__all__"
-        # depth = 1
     
     def get_PL(self, obj):
         option = obj.percentage.option.split()
@@ -40,18 +38,16 @@ class stockListSerializer(serializers.ModelSerializer):
             return None
 
 class stockPostSerializer(serializers.ModelSerializer):
-    # percentage = settingSerializer()
+    
     class Meta:
         model = stock_detail
         fields = "__all__"
-        # depth = 1
 
 
 class putbankniftySerializer(serializers.ModelSerializer):
     class Meta:
         model = stock_detail
         fields = "__all__"
-        # exclude = ['percentage',]
 
 class pcr_stock_nameSerializer(serializers.ModelSerializer):
     

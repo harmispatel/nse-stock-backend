@@ -3,7 +3,7 @@ from .models import *
 from import_export.admin import ExportActionMixin
 from import_export.widgets import ForeignKeyWidget
 
-# Register your models here.
+
 from import_export import resources, fields
 @admin.register(nse_setting)
 class nsesetting(admin.ModelAdmin):
