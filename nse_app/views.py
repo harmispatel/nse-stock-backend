@@ -9,6 +9,10 @@ from django.utils import timezone
 from openpyxl import Workbook
 from django.http import HttpResponse
 import pytz
+import yfinance as yf
+import pandas as pd
+from datetime import timedelta
+
 
 def home(request):
     # This is in localbranch
@@ -90,13 +94,24 @@ def export_to_excel(request):
     ws = wb.active
     ws.title = "Order Data"
 
-    headers = ["id", "option","Type", "Strike Price", "Live Price", "Buy Price", "Buy time", "TP", "SL", "Buy PCR", "Exit PCR", "Exit Price", "Exit time", "P&L", "Oi Deff", "qty"]
+    headers = ["id", "option","Type", "Strike Price", "Live Price", "Buy Price", "Buy time", "TP", "SL", "Buy PCR", "Exit PCR", "Exit Price", "Exit time", "P&L", "Oi Deff", "afterLoss", "qty"]
     ws.append(headers)
 
-    kolkata_timezone = pytz.timezone('Asia/Kolkata')
     products = stock_detail.objects.all().order_by('-buy_time')
     for i in products:
-        print("i.sell_buy_time", i.sell_buy_time)
+        afterLoss = 0
+        index = i.percentage.option.split()[0]
+        future = i.percentage.option.split()[1]
+        if i.final_status == 'LOSS' and i.type == 'BUY' and future == "FUTURE" and i.live_Strike_price:
+                date = (i.buy_time).astimezone(kolkata_timezone).replace(tzinfo=None).date()
+                time = (i.buy_time).astimezone(kolkata_timezone).replace(tzinfo=None).time()
+                afterLoss = ((i.live_Strike_price) - getLowHighPrice(index, date, time, 'low'))
+
+        if i.final_status == 'LOSS' and i.type == 'SELL' and future == "FUTURE" and i.live_Strike_price:
+                date = (i.buy_time).astimezone(kolkata_timezone).replace(tzinfo=None).date()
+                time = (i.buy_time).astimezone(kolkata_timezone).replace(tzinfo=None).time()
+                afterLoss = (getLowHighPrice(index, date, time, 'high') - i.live_Strike_price)
+            
         ws.append([
             i.id,
             i.percentage.option, 
@@ -113,6 +128,7 @@ def export_to_excel(request):
             ((i.sell_buy_time).astimezone(kolkata_timezone).replace(tzinfo=None)) if i.sell_buy_time else i.sell_buy_time,
             i.final_status, 
             i.oi_diff,
+            afterLoss or 0,
             i.qty, 
             ])
 
@@ -147,4 +163,44 @@ def pcrUpdate(request):
     return render(request, "PcrStock.html", { 'update_needed' : update_needed, 'success_count' : success_count, 'reject_count': reject_count })
 
 
+def getLowHighPrice(index, date, time, lowOhigh):
+    if index == 'BANKNIFTY':
+        indexValue = '^NSEBANK'
+    elif index == 'NIFTY':
+        indexValue = '^NSEI'
 
+    nifty_data = yf.download(indexValue, start=date, end= date + timedelta(days=1), interval="1m")
+
+    provided_time = time
+    nifty_data.index = pd.to_datetime(nifty_data.index)
+
+    filtered_data = None
+    time_condition_met = False
+
+    lowest = 0
+    highest = 0 
+    for index, row in nifty_data.iterrows():
+        
+        if index.strftime("%H:%M") == provided_time.strftime("%H:%M"):
+            filtered_data = row
+            time_condition_met = True
+
+        elif time_condition_met and (index - filtered_data.name).total_seconds() <= 20 * 60:
+            if filtered_data is not None:
+                if lowest < min(filtered_data['Low'], row['Low']) and lowest != 0:
+                    lowest = lowest
+                else:
+                    lowest = min(filtered_data['Low'], row['Low'])
+
+                if highest > max(filtered_data['High'], row['High']) and highest != 0:
+                    highest = highest
+                else:
+                    highest = max(filtered_data['High'], row['High'])
+
+    if time_condition_met:
+        if lowOhigh == 'low':
+            return round(lowest, 2)
+        else:
+            return round(highest, 2)
+    else:
+        print("No data found at the provided time.")

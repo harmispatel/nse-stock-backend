@@ -68,14 +68,14 @@ def BankniftyApiFun():
     '''find call strike price for buy'''
     base_Price_down = []
     Total_oi_down_arr = []
-    for downSlice3 in down_price[:-4:-1]:
+    for downSlice3 in down_price[:-5:-1]:
         PE_oi_down = downSlice3['PE']['changeinOpenInterest'] + downSlice3['PE']['openInterest']
         CE_oi_down = downSlice3['CE']['changeinOpenInterest'] + downSlice3['CE']['openInterest']
         Total_oi_down = PE_oi_down - CE_oi_down
         Total_oi_down_arr.append(Total_oi_down)
         if Total_oi_down > oi_total_call:
             if abs(Total_oi_down_arr[0]) == abs(Total_oi_down):
-                if up_first_total_oi < oi_total_call:
+                if up_first_total_oi < abs(Total_oi_down_arr[0]):
                     base_Price_down.append(downSlice3)
                     break
                 else:
@@ -91,9 +91,9 @@ def BankniftyApiFun():
         CE_oi_up = upSlice3['CE']['changeinOpenInterest'] + upSlice3['CE']['openInterest']
         Total_oi_up = PE_oi_up - CE_oi_up
         Total_oi_up_arr.append(Total_oi_up)
-        if abs(Total_oi_up) > oi_total_put:
+        if abs(Total_oi_up) > oi_total_put and Total_oi_up < 0 :
             if abs(Total_oi_up_arr[0]) == abs(Total_oi_up):
-                if down_first_total_oi < oi_total_put:
+                if down_first_total_oi < abs(Total_oi_up_arr[0]):
                     base_Price_up.append(upSlice3)  
                     break 
                 else:

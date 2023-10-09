@@ -145,6 +145,10 @@
     function toggleDropdown(event, id) {
         event.preventDefault();
         var element = document.getElementById(id);
+        var tr = document.querySelector(`[data-row-id="${id}"]`)
+        tr.classList.toggle("bg-white");
+        tr.classList.toggle("hover:bg-gray-100");
+        tr.classList.toggle("bg-gray-200");
         element.classList.toggle("hidden");
       }
 

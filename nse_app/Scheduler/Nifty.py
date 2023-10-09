@@ -73,7 +73,7 @@ def NiftyApiFun():
         Total_oi_down_arr.append(Total_oi_down)
         if Total_oi_down > oi_total_call:
             if abs(Total_oi_down_arr[0]) == abs(Total_oi_down):
-                if abs(up_first_total_oi) < oi_total_call:
+                if abs(up_first_total_oi) < abs(Total_oi_down_arr[0]):
                     base_Price_down.append(downSlice3)
                     break
                 else:
@@ -89,9 +89,9 @@ def NiftyApiFun():
         CE_oi_up = upSlice3['CE']['changeinOpenInterest'] + upSlice3['CE']['openInterest']
         Total_oi_up = PE_oi_up - CE_oi_up
         Total_oi_up_arr.append(Total_oi_up)
-        if abs(Total_oi_up) > oi_total_put:
+        if abs(Total_oi_up) > oi_total_put and Total_oi_up < 0:
             if abs(Total_oi_up_arr[0]) == abs(Total_oi_up):
-                if abs(down_first_total_oi) < oi_total_put:
+                if abs(down_first_total_oi) < abs(Total_oi_up_arr[0]):
                     base_Price_up.append(upSlice3)  
                     break 
                 else:
@@ -221,7 +221,7 @@ def NIFTY():
                         
                         postData = { "buy_price": BidPrice_CE, "base_strike_price":strikePrice_CE, "live_Strike_price":livePrice, "sell_price": sellPrice_CE, "stop_loseprice": stop_loss_CE, 'percentage': OptionId_CALL, 'call_put':call_call}
                         obj_banknifty_old = stock_detail.objects.create(status="BUY",qty = lot_size_CALL*50 ,buy_price = BidPrice_CE, base_strike_price=strikePrice_CE, live_Strike_price=livePrice, live_brid_price=BidPrice_CE, sell_price= sellPrice_CE ,stop_loseprice=stop_loss_CE, percentage_id=OptionId_CALL , call_put =call_call, buy_pcr = '%.2f'% (pcr) )
-
+                        
                         if is_live_nifty == True:
                             sellFunOption(strikePrice_CE, BidPrice_CE, squareoff_CE, stoploss_CE, OptionId_CALL, lot_size_CALL, obj_banknifty_old.id, exprityDate)
                         print('SuccessFully Buy IN NIFTY CALL: ', postData)    

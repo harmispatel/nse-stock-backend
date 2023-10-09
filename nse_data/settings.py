@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -58,7 +62,6 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
@@ -79,23 +82,16 @@ REST_FRAMEWORK = {
 REST_KNOX = {
         'TOKEN_TTL': None,  # never expire
 }
-# REST_FRAMEWORK = {
-#     'DEFAULT_AUTHENTICATION_CLASSES': [
-#         'rest_framework.authentication.BasicAuthentication',
-#         'rest_framework.authentication.SessionAuthentication',
-#     ]
-# }
 
 CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = "nse_data.urls"
 
-# CORS_ORIGIN_ALLOW = "http://localhost:8000"
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [ BASE_DIR / "templates" ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -117,7 +113,7 @@ WSGI_APPLICATION = "nse_data.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "nse_data",
+        "NAME": os.getenv('DATABASE_NAME'),
         "USER": "root",
         "PASSWORD": "",
         "HOST": "localhost",
@@ -152,7 +148,6 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "Asia/Kolkata"
-# TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -171,8 +166,8 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': True,
-# }
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+}
 
