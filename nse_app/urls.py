@@ -1,6 +1,5 @@
 from django.urls import path
-from . import views
-from . import views_api
+from . import views, views_api
 
 app_name = "nse_app"
 
@@ -8,22 +7,22 @@ urlpatterns = [
     path('', views.home, name = 'home'),
     path('home/', views.home, name = 'home'),
     path('deleteOrder/', views.deleteStock, name = 'deletestock'),
-
+    
     path('settings/', views.settings, name = 'settings'),
     path('changesettings/', views.changesettings, name = 'changesettings'),
-
+    
     path('pcrvalues/', views.PcrValue, name = 'pcrvalues'),
     path('pcrUpdate/', views.pcrUpdate, name = 'pcrUpdate'),
-
+    
     path('export/', views.export_to_excel, name='export_to_excel'),
-
-
+    
+    
     # API
     path('logout', views_api.Logout.as_view(), name="logout"),
     
     path('buyFutureOp', views_api.buyFutureOp.as_view(), name = 'buyFutureOp'),
     path('buyStockFuture', views_api.buyStockFuture.as_view(), name = 'buyStockFuture'),
-
+    
     ## SETTING API
     path('setting_nse', views_api.setting_nse.as_view(), name = 'setting_nse'), 
     path("get_setting_data/<int:pk>", views_api.SnippetDetail.as_view(), name="setting_nse"),

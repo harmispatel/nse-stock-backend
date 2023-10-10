@@ -29,7 +29,7 @@ class buyFutureOp(APIView):
             if option == 'BANKNIFTY': optionId = nse_setting.objects.filter(option = "BANKNIFTY FUTURE").values().first()
             if option == 'NIFTY': optionId = nse_setting.objects.filter(option = "NIFTY FUTURE").values().first()
             obj = SellFunction.optionFuture(option, lots, profit, loss, type, is_live)
-
+            
             stock_detail.objects.create(status="BUY", type= type, qty = obj['qty'], buy_price=obj['ltp'], sell_price = obj['squareoff'], stop_loseprice = obj['stoploss'], order_id = obj['orderId'], percentage_id=optionId['id'])
             
             return JsonResponse({'orderId': obj['orderId']})
@@ -47,7 +47,7 @@ class buyStockFuture(APIView):
             loss = request.data['loss']
             is_live = request.data['is_live']
             obj = nse_setting.objects.filter(option = "STOCK FUTURE").values().first()
-
+            
             ltp, squareoff, stoploss, orderId, qty = SellFunction.stockFutureBuyPrice(stock, lots, profit, loss, type, is_live)
             stock_detail.objects.create(status="BUY", type= type, stock_name = stock, qty = qty,  buy_price=ltp, sell_price = squareoff, stop_loseprice = stoploss, order_id = orderId, percentage_id=obj['id'])
             
@@ -75,7 +75,7 @@ class stock_details(APIView):
             if start_date and end_date:
                 start_date = timezone.make_aware(datetime.strptime(start_date, '%Y-%m-%d'))
                 end_date = timezone.make_aware(datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)) - timedelta(seconds=1)
-
+                
                 queryset = stock_detail.objects.select_related('percentage').filter(buy_time__gte = start_date, buy_time__lte=end_date).order_by("-buy_time")
                 total_PL = sum(stockListSerializer().get_PL(record) or 0 for record in queryset)
             else:
@@ -96,7 +96,7 @@ class stock_details(APIView):
             data = request.data
             if not data.get("id"):
                 return Response({"status": False, "message": "id is required", "data": {}})
-
+            
             obj = stock_detail.objects.get(id=data.get("id"))
             serializer = stockPostSerializer(obj, data=data, partial=True)
             if ('exit_price' in data):

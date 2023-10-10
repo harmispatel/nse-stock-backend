@@ -20,13 +20,9 @@ class StockDetailResource(resources.ModelResource):
     class Meta:
         model = stock_detail
 
-class CustomExportActionMixin(ExportActionMixin):
-    def get_queryset(self, request):
-        return stock_detail.objects.filter()
-    
 
 @admin.register(stock_detail)
-class nsestock(CustomExportActionMixin, admin.ModelAdmin):
+class nsestock(ExportActionMixin, admin.ModelAdmin):
     list_display = ['percentage', 'base_strike_price', 'buy_price', 'exit_price', 'buy_time', 'final_status', 'stock_name']
     resource_class = StockDetailResource
     

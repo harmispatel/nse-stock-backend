@@ -6,7 +6,7 @@ Buy_status = (
     ('BUY', 'BUY'),
     ('SELL', 'SELL'),
     ('NA', 'NA'),
-    )
+        )
 
 final_status = (
     ('PROFIT', 'PROFIT'),
@@ -24,7 +24,7 @@ option_names = (
     ('NIFTY', 'NIFTY'),
     ('BANKNIFTY', 'BANKNIFTY'),
     )
-# Create your models here.
+
 
 
 class nse_setting(models.Model):
@@ -35,7 +35,7 @@ class nse_setting(models.Model):
     set_pcr = models.FloatField()
     baseprice_plus = models.IntegerField()
     you_can_buy = models.BooleanField(null=True, blank=True)
-
+    
     def __str__(self):
         return self.option
     
@@ -74,8 +74,9 @@ class stock_detail(models.Model):
     qty = models.IntegerField(blank=True, default=0)
     order_id = models.CharField(max_length=50, blank=True)
     oi_diff = models.IntegerField(blank=True, null=True)
-
-
+    after_Loss = models.CharField(max_length=120, blank=True, null= True)
+    
+    
     class Meta:
         db_table = 'stocks_details'
 
@@ -83,7 +84,7 @@ class pcr_stock_name(models.Model):
     name = models.CharField(max_length = 100)
     pcr = models.FloatField(null=True)
     date = models.DateTimeField(auto_now=True , null=True)
-
+    
     class Meta:
         db_table = 'pcr_stockName'
     
@@ -93,7 +94,7 @@ class live(models.Model):
     live_stock_ce = models.BooleanField(default=False)
     live_stock_pe = models.BooleanField(default=False)
     live_set = models.BooleanField(default=False)
-
+    
     class Meta:
         db_table = 'live_settings'
     
@@ -113,7 +114,7 @@ class stock_for_buy(models.Model):
     difference_ce_pe = models.IntegerField(blank=True, null=True)
     PE_side_persnt = models.FloatField(blank=True, null=True)
     CE_side_persnt = models.FloatField(blank=True, null=True)
-
+    
     class Meta:
         db_table = 'stock_for_buy'
 
@@ -121,16 +122,16 @@ class pcr_values(models.Model):
     option_name = models.CharField(max_length=50, choices=option_names)
     pcr_value = models.FloatField(blank=True, default=0)
     timestamp = models.DateTimeField(auto_now=True, null=True)
-
+    
     def __str__(self):
         return self.option_name
-
+    
     class Meta:
         db_table = 'pcr_values'
 
 class extra_setting(models.Model):
     pcr_isupdating = models.BooleanField(default=False)
-
+    
     class Meta:
         db_table = 'extra_setting'
         
@@ -138,7 +139,7 @@ class BaseZoneBanknifty(models.Model):
     in_basezone = models.BooleanField(default=False, null=True, blank=True)
     base_price = models.FloatField(null=True, blank=True)
     stop_loss_price = models.FloatField(null=True, blank=True)
-
+    
     class Meta:
         db_table = 'BaseZone_Banknifty'
         
@@ -146,7 +147,7 @@ class BaseZoneNifty(models.Model):
     in_basezone = models.BooleanField(default=False, null=True, blank=True)
     base_price = models.FloatField(null=True, blank=True)
     stop_loss_price = models.FloatField(null=True, blank=True)
-
+    
     class Meta:
         db_table = 'BaseZone_Nifty'
         
@@ -154,7 +155,7 @@ class ResistanceZone_Banknifty(models.Model):
     in_resistance = models.BooleanField(default=False, null=True, blank=True)
     resistance_price = models.FloatField(null=True, blank=True)
     stop_loss_price = models.FloatField(null=True, blank=True)
-
+    
     class Meta:
         db_table = 'ResistanceZone_Banknifty'
         
@@ -162,7 +163,7 @@ class ResistanceZone_Nifty(models.Model):
     in_resistance = models.BooleanField(default=False, null=True, blank=True)
     resistance_price = models.FloatField(null=True, blank=True)
     stop_loss_price = models.FloatField(null=True, blank=True)
-
+    
     class Meta:
         db_table = 'ResistanceZone_Nifty'
         

@@ -12,10 +12,9 @@ from nse_app.Scheduler.Stock import stockFutureSell
 
 urlpatterns = [
     path("login", views.obtain_auth_token),
-    path("api-auth/", include("rest_framework.urls")),
     path("admin/", admin.site.urls),
     path("", include("nse_app.urls")),
-    path("__debug__/", include("debug_toolbar.urls")),
+    # path("__debug__/", include("debug_toolbar.urls")),
 
 ]
 

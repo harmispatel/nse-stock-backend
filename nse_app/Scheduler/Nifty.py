@@ -8,41 +8,46 @@ from rich.console import Console
 from .CoustomFun import Coustom
 from .SellFunction import sellFunOption, futureLivePrice, optionFuture, ltpData
 from datetime import date, datetime as dt
-
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 consoleGreen = Console(style='green')
 consoleRed = Console(style='red')
 
 
 # VARIABLES LOCAL AND SERVER BOTH ARE SAME
-NIFTY_CE = "NIFTY CE"
-NIFTY_PE = "NIFTY PE"
-NIFTY_FUTURE = 'NIFTY FUTURE'
+NIFTY_CE = os.getenv('NIFTY_CE')
+NIFTY_PE = os.getenv('NIFTY_PE')
+NIFTY_FUTURE = os.getenv('NIFTY_FUTURE')
 
-NIFTY_URL = 'https://www.nseindia.com/api/option-chain-indices?symbol=NIFTY'
+NIFTY_URL = os.getenv('NIFTY_URL')
+# NIFTY_URL = https://www.nseindia.com/api/option-chain-indices?symbol=NIFTY
 
-SETTINGS_URL = 'http://zerodha.harmistechnology.com/settings'
+SETTINGS_URL = os.getenv('SETTINGS_URL')
+# SETTINGS_URL = http://zerodha.harmistechnology.com/settings
+
 
 def NiftyApiFun():
     ##  Set variable as global to use across different functions 
     global api_data, livePrice, timestamp, filteredData, PEMax, CEMax, down_price, up_price, downSliceList, upSliceList, pcr, base_Price_down, base_Price_up
     global up_first_total_oi, down_first_total_oi, CEMaxValue, PEMaxValue, oi_total_call, oi_total_put, exprityDate
-
+    
     headers =  {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, '
                         'like Gecko) '
                         'Chrome/80.0.3987.149 Safari/537.36',
         'accept-language': 'en,gu;q=0.9,hi;q=0.8', 'accept-encoding': 'gzip, deflate, br'}
-
+    
     url = NIFTY_URL
     
     response = requests.get(url, headers=headers)
     data = response.text
     api_data = json.loads(data)
-
+    
     filteredData = api_data['filtered']['data']
     timestamp = api_data['records']['timestamp']
     livePrice = api_data['records']['underlyingValue']
-
+    
     date_string = api_data['records']['expiryDates'][0]
     date_format = "%d-%b-%Y"
     date_object = dt.strptime(date_string, date_format).date()
@@ -51,18 +56,18 @@ def NiftyApiFun():
     ## Check coustom conditions to get data from optionchain 
     down_price = Coustom.downPrice(filteredData, livePrice)
     up_price = Coustom.upPrice(filteredData, livePrice)
-
+    
     downSliceList = Coustom.downMaxValue(down_price[:-6:-1])
     upSliceList = Coustom.upMaxValue(up_price[0:5])
-
+    
     PEMax, PEMaxValue = Coustom.basePriceData(down_price, downSliceList)
     CEMax, CEMaxValue = Coustom.resistancePriceData(up_price, upSliceList)
-
+    
     pcr = Coustom.pcrValue(api_data)
-
+    
     up_first_total_oi = ((up_price[0]['PE']['changeinOpenInterest'] + up_price[0]['PE']['openInterest']) - (up_price[0]['CE']['changeinOpenInterest'] + up_price[0]['CE']['openInterest']))
     down_first_total_oi = ((down_price[-1]['PE']['changeinOpenInterest'] + down_price[-1]['PE']['openInterest']) - (down_price[-1]['CE']['changeinOpenInterest'] + down_price[-1]['CE']['openInterest']))
-
+    
     '''find call strike price for buy'''
     base_Price_down = []
     Total_oi_down_arr = []
@@ -80,7 +85,7 @@ def NiftyApiFun():
                     continue
             base_Price_down.append(downSlice3)
             break
-
+    
     '''find put strike price for buy'''
     base_Price_up = []
     Total_oi_up_arr = []
@@ -194,7 +199,7 @@ def NIFTY():
         global api_data, livePrice, timestamp, filteredData, PEMax, CEMax, down_price, up_price, downSliceList, upSliceList, pcr, base_Price_down, base_Price_up, OptionId_Future, exprityDate
         global up_first_total_oi, down_first_total_oi, CEMaxValue, PEMaxValue, used_logic_call, used_logic_put, is_live_nifty, is_op_fut_nifty, setBuyConditionFutureSell, setBuyConditionFutureBuy
         global lotSizeFuture
-
+        
         file = open("nifty.txt", "a")
         try:
             '''
@@ -225,7 +230,7 @@ def NIFTY():
                         if is_live_nifty == True:
                             sellFunOption(strikePrice_CE, BidPrice_CE, squareoff_CE, stoploss_CE, OptionId_CALL, lot_size_CALL, obj_banknifty_old.id, exprityDate)
                         print('SuccessFully Buy IN NIFTY CALL: ', postData)    
-
+            
             ### PUT BUY
             if is_op_fut_nifty == 'OPTION' and setOneStock_PUT == True and setBuyCondition_PUT == True and pcr <= set_PUT_pcr:
                 for bpu in base_Price_up:
@@ -247,8 +252,8 @@ def NIFTY():
                             if is_live_nifty == True:
                                 sellFunOption(strikePrice_PUT, BidPrice_PUT, squareoff_PUT, stoploss_PUT, OptionId_PUT, lot_size_PUT, obj_banknifty_old.id, exprityDate)
                             print('SuccessFully Buy IN NIFTY PUT: ',postData)
-
-
+            
+            
             ## FUTURE BUY
             if is_op_fut_nifty == 'FUTURE' and setBuyConditionFutureBuy == True and pcr >= set_CALL_pcr:
                 for nbpd in base_Price_down:
@@ -266,8 +271,8 @@ def NIFTY():
                         else:
                             stock_detail.objects.create(status="BUY", qty = lotSizeFuture*50, type= 'BUY', base_strike_price=nbpd['strikePrice'], live_Strike_price=livePrice, buy_price=liveFuture, sell_price = (liveFuture + profitFuture) , stop_loseprice = (liveFuture - lossFuture), percentage_id=OptionId_Future, buy_pcr = '%.2f'% (pcr) )
                         print('Successfully BUY FUTURE: ', postData)
-
-
+            
+            
             ## FUTURE SELL
             if is_op_fut_nifty == 'FUTURE' and setBuyConditionFutureSell == True and pcr <= set_PUT_pcr:
                 for bpu in base_Price_up:
@@ -283,8 +288,8 @@ def NIFTY():
                         else:
                             stock_detail.objects.create(status="BUY", qty = lotSizeFuture*50, type= 'SELL', base_strike_price=bpu['strikePrice'], live_Strike_price=livePrice, buy_price=liveFuture, sell_price = (liveFuture - profitFuture) , stop_loseprice = (liveFuture + lossFuture), percentage_id=OptionId_Future, buy_pcr = '%.2f'% (pcr) )                        
                         print('Successfully SELL FUTURE: ', postData)
-
-
+            
+            
             ## Find and calculate OIdifferance from filteredData
             def oiDiff(filteredData, strikePrice):
                 for i in filteredData:
@@ -292,7 +297,7 @@ def NIFTY():
                         return (i['PE']['changeinOpenInterest'] + i['PE']['openInterest']) - (i['CE']['changeinOpenInterest'] + i['CE']['openInterest'])
                     if strikePrice == 0:
                         return 0
-
+            
             ## OPTION SELL condition
             def sell_stock_logic(stock_data, optionId, filteredData,  pcr):
                 sell_time = timezone.now()
@@ -315,7 +320,7 @@ def NIFTY():
                                 final_status = 'LOSS'
                             stock_detail.objects.filter(id=id).update(status = 'SELL', exit_price = liveBidPrice, oi_diff = oiDiff(filteredData, strikePrice), sell_buy_time=sell_time, final_status = final_status, exit_pcr= '%.2f'% (pcr))
                             print("SuccessFully SELL STOCK OF", ce_pe)
-
+                        
                         if sell_price <= liveBidPrice :
                             final_status = "PROFIT"
                             stock_detail.objects.filter(id=id).update(status = 'SELL', exit_price = liveBidPrice, oi_diff = oiDiff(filteredData, strikePrice), sell_buy_time=sell_time, final_status = final_status, admin_call= True, exit_pcr= '%.2f'% (pcr))
@@ -324,13 +329,13 @@ def NIFTY():
                             final_status = "LOSS"
                             stock_detail.objects.filter(id=id).update(status = 'SELL', exit_price = liveBidPrice, oi_diff = oiDiff(filteredData, strikePrice), sell_buy_time=sell_time, final_status = final_status,admin_call = True, exit_pcr= '%.2f'% (pcr) )
                             print("SuccessFully SELL STOCK OF", ce_pe)
-
+            
             ## CALL SELL                    
             sell_stock_logic(stock_details, OptionId_CALL, filteredData, pcr)
             ## PUT SELL
             sell_stock_logic(stock_details, OptionId_PUT, filteredData, pcr)
-
-
+            
+            
             for sell in stock_details:
                 ## FUTURE SELL
                 if sell['status'] == 'BUY' and sell['percentage_id'] == OptionId_Future:

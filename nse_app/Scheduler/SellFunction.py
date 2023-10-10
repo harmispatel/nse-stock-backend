@@ -27,19 +27,19 @@ def getTokenApiData():
             token_df = pd.DataFrame.from_dict(d)
             token_df['expiry'] = pd.to_datetime(token_df['expiry'])
             token_df = token_df.astype({'strike': float})
-
+        
             df = pd.DataFrame(token_df)
             df.to_csv('data.csv', index=False)
-            # print(f'Data saved to data.csv on {datetime.now()}')
+        
         except Exception as e:
             print(f'Error fetching or saving data: {str(e)}')
-
+        
     if not os.path.exists('data.csv'):
         fetch_and_store_data()
         token_df = pd.read_csv('data.csv', low_memory=False)
     else:
         last_modified_time = datetime.fromtimestamp(os.path.getmtime('data.csv'))
-
+        
         if last_modified_time.date() != datetime.now().date():
             fetch_and_store_data()
             token_df = pd.read_csv('data.csv', low_memory=False)
@@ -56,15 +56,15 @@ def getTokenInfo(symbol, exch_seg='NSE', instrumenttype='OPTIDX', strike_price='
     if exch_seg == 'NSE':
         eq_df = df[(df['exch_seg'] == 'NSE')]
         return eq_df[eq_df['name'] == symbol]
-
+    
     ## OPTION STRIKE PRICE
     elif exch_seg == 'NFO' and (instrumenttype == 'OPTSTK' or instrumenttype == 'OPTIDX'):
         return df[(df['exch_seg'] == 'NFO') & (df['name'] == symbol) & (df['strike'] == strike_price) & (df['symbol'].str.endswith(pe_ce))].sort_values(by=['expiry'])
-
+    
     ## OPTION FUTURE
     elif exch_seg == 'NFO' and ((instrumenttype == 'FUTSTK') or (instrumenttype == 'FUTIDX')):
         return df[(df['exch_seg'] == 'NFO') & (df['instrumenttype'] == instrumenttype) & (df['name'] == symbol) & (df['symbol'].str.endswith('FUT'))].sort_values(by=['expiry'])
-
+    
     # elif exch_seg == 'NFO' and ((instrumenttype == 'FUTSTK') or (instrumenttype == 'FUTIDX')):
     #     return df[(df['exch_seg'] == 'NFO') & (df['instrumenttype'] == instrumenttype) & (df['name'] == symbol)].sort_values(by=['expiry'])
 
@@ -78,11 +78,13 @@ def sellFunOption(strikePrice, BidPrice, squareoff, stoploss, OptionId, lots, id
     percentions_sm = OptionId
     lot_size = lots
     
-    obj = AccountCredential.objects.all().values().last()
-    username = obj['username']
-    apikey = obj['apikey']
-    password = obj['password']
-    t_otp = obj['t_otp']
+    url = 'http://zerodha.harmistechnology.com/accountDetail'
+    response = requests.get(url).json()
+    data = response[0]
+    username = data['username']
+    apikey = data['apikey']
+    password = data['password']
+    t_otp = data['t_otp']
 
     username = username
     apikey = apikey
@@ -372,16 +374,16 @@ def futureLivePrice(option):
     f_token = getTokenInfo(option ,'NFO', 'FUTIDX', '', '').iloc[0]
     symbol = f_token['symbol']
     token = f_token['token']
-
+    
     username, apikey, password, t_otp = angleDetails()
-
+    
     username = username
     apikey = apikey
     pwd = password
     totp = pyotp.TOTP(t_otp).now()
     obj = SmartConnect(api_key=apikey)
     obj.generateSession(username, pwd, totp)
-
+    
     ltp = obj.ltpData('NFO', symbol, token)
     return ltp['data']['ltp']
 
@@ -392,16 +394,16 @@ def futureStockLivePrice(stock):
     f_token = getTokenInfo(stock ,'NFO', 'FUTSTK', '', '').iloc[0]
     symbol = f_token['symbol']
     token = f_token['token']
-
+    
     username, apikey, password, t_otp = angleDetails()
-
+    
     username = username
     apikey = apikey
     pwd = password
     totp = pyotp.TOTP(t_otp).now()
     obj = SmartConnect(api_key=apikey)
     obj.generateSession(username, pwd, totp)
-
+    
     ltp = obj.ltpData('NFO', symbol, token)
     return ltp['data']['ltp']
 

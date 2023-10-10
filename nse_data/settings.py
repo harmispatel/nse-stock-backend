@@ -29,7 +29,6 @@ SECRET_KEY = "django-insecure-7ini0z!jh!xw&zrv0!tgjr#_cn9yrwcoys9y1pd9w@@0r7+6tq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# ALLOWED_HOSTS = ["192.168.1.192", "127.0.0.1", "127.0.0.1:8000", "localhost"]
 ALLOWED_HOSTS = ['*']
 
 
@@ -47,11 +46,9 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "rest_framework.authtoken",
-    "debug_toolbar",
+    # "debug_toolbar",
     'knox',
 
-    
-    
 ]
 
 MIDDLEWARE = [
@@ -63,7 +60,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
+    # "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 INTERNAL_IPS = [

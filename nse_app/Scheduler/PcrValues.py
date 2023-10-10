@@ -7,35 +7,7 @@ from .CoustomFun import Coustom
 def PcrValues():
     current_time = datetime.now()
     current_time = current_time.strftime("%H:%M")
-    times =  [
-        '09:15',
-        '09:30',
-        '09:45',
-        '10:00',
-        '10:15',
-        '10:30',
-        '10:45',
-        '11:00',
-        '11:15',
-        '11:30',
-        '11:45',
-        '12:00',
-        '12:15',
-        '12:30',
-        '12:45',
-        '13:00',
-        '13:15',
-        '13:30',
-        '13:45',
-        '14:00',
-        '14:15',
-        '14:30',
-        '14:45',
-        '15:00',
-        '15:15',
-        '15:30',
-     ] 
-
+    
     times_5min =  [
         '09:15',
         '09:20','09:25','09:30',
@@ -64,13 +36,12 @@ def PcrValues():
         '15:05','15:10','15:15',
         '15:20','15:25','15:30',
      ] 
-
-
+    
+    
     headers =  {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, '
                     'like Gecko) '
                     'Chrome/80.0.3987.149 Safari/537.36',
                     'accept-language': 'en,gu;q=0.9,hi;q=0.8', 'accept-encoding': 'gzip, deflate, br'}
-    
     
     try:
         ## BANKNIFTY PCR
@@ -79,12 +50,28 @@ def PcrValues():
             response = requests.get(url, headers=headers)
             data = response.text
             api_data = json.loads(data)
-        
+            
             pcr = Coustom.pcrValue(api_data)
             pcr_values.objects.create(option_name='BANKNIFTY', pcr_value=pcr)
             print('Pcr BankNifty->', pcr)
 
-    # ## LIVE PRICE
+        ## NIFTY PCR
+        if current_time in times_5min:
+            url_nifty = 'https://www.nseindia.com/api/option-chain-indices?symbol=NIFTY'
+            response_nifty = requests.get(url_nifty, headers=headers)
+            data_nifty = response_nifty.text
+            api_data_nifty = json.loads(data_nifty)
+            
+            pcr_nifty = Coustom.pcrValue(api_data_nifty)
+            pcr_values.objects.create(option_name='NIFTY', pcr_value=pcr_nifty)
+            print('Pcr Nifty->', pcr_nifty)
+            
+    except Exception as e:
+        print(e)
+
+
+
+    # ## LIVE PRICE BANKNIFTY
     # livePrice_banknifty = api_data['records']['underlyingValue']
     # base_zone_obj = BaseZoneBanknifty.objects.all().values() 
     # resistance_zone_obj = ResistanceZone_Banknifty.objects.all().values() 
@@ -93,7 +80,7 @@ def PcrValues():
     #         if current_time in times:
     #             LiveDataBankNifty.objects.create(live_price = livePrice_banknifty, in_basezone=True)
     #             print("LiveData Added successfully BankNifty", livePrice_banknifty)
-                
+    
     # elif len(resistance_zone_obj) != 0:
     #     if resistance_zone_obj[0]['in_resistance'] == True:
     #         if current_time in times:
@@ -106,22 +93,9 @@ def PcrValues():
     #         print("LiveData Added successfully BankNifty", livePrice_banknifty)
 
 
-        ## NIFTY PCR
-        if current_time in times_5min:
-            url_nifty = 'https://www.nseindia.com/api/option-chain-indices?symbol=NIFTY'
-            response_nifty = requests.get(url_nifty, headers=headers)
-            data_nifty = response_nifty.text
-            api_data_nifty = json.loads(data_nifty)
-        
-            pcr_nifty = Coustom.pcrValue(api_data_nifty)
-            pcr_values.objects.create(option_name='NIFTY', pcr_value=pcr_nifty)
-            print('Pcr Nifty->', pcr_nifty)
-            
-    except Exception as e:
-        print(e)
 
         
-    # ## LIVE PRICE
+    # ## LIVE PRICE NIFTY
     # livePrice_nifty = api_data_nifty['records']['underlyingValue']
     # base_zone_obj_nifty = BaseZoneNifty.objects.all().values() 
     # resistance_zone_obj_nifty = ResistanceZone_Nifty.objects.all().values() 
