@@ -10,8 +10,9 @@
         <table class="table w-1/2 mr-4 border ml-3">
           <thead>
             <tr class="bg-gray-100">
-              <th class="px-4 py-2">Time Stamp</th>
               <th class="px-4 py-2">Option</th>
+              <th class="px-4 py-2">Time Stamp</th>
+              <th class="px-4 py-2">Spot Price</th>
               <th class="px-4 py-2">Pcr Value</th>
             </tr>
           </thead>
@@ -21,6 +22,7 @@
                     <tr class="border">
                     <td class="px-4 py-2">{{ i.option_name }}</td>
                     <td class="px-4 py-2">{{ i.timestamp }}</td>
+                    <td class="px-4 py-2">{{ i.live_price }}</td>
                     <td class="px-4 py-2">{{ i.pcr_value }}</td>
                     </tr>
                 {% endif %}
@@ -31,8 +33,9 @@
         <table class="table w-1/2 mr-4 border">
           <thead>
             <tr class="bg-gray-100">
-              <th class="px-4 py-2">Time Stamp</th>
               <th class="px-4 py-2">Option</th>
+              <th class="px-4 py-2">Time Stamp</th>
+              <th class="px-4 py-2">Spot Price</th>
               <th class="px-4 py-2">Pcr Value</th>
             </tr>
           </thead>
@@ -42,6 +45,7 @@
                     <tr class="border">
                     <td class="px-4 py-2">{{ i.option_name }}</td>
                     <td class="px-4 py-2">{{ i.timestamp }}</td>
+                    <td class="px-4 py-2">{{ i.live_price }}</td>
                     <td class="px-4 py-2">{{ i.pcr_value }}</td>
                     </tr>
                 {% endif %}

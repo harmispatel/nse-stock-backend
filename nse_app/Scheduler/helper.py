@@ -5,7 +5,7 @@ consoleGreen = Console(style='green')
 
 
 
-class Coustom():
+class Helper():
     def downPrice(data, livePrice):
         down_price = []
         for down in data:

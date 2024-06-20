@@ -8,7 +8,7 @@ from rest_framework.authentication import TokenAuthentication
 from datetime import datetime, timedelta
 from rest_framework import generics
 from .pagination import MyPaginationClass
-from nse_app.Scheduler import SellFunction
+from nse_app.Scheduler import sell_function
 from .models import *
 from rest_framework.response import Response
 from django.http import JsonResponse
@@ -28,7 +28,7 @@ class buyFutureOp(APIView):
             is_live = request.data['is_live']
             if option == 'BANKNIFTY': optionId = nse_setting.objects.filter(option = "BANKNIFTY FUTURE").values().first()
             if option == 'NIFTY': optionId = nse_setting.objects.filter(option = "NIFTY FUTURE").values().first()
-            obj = SellFunction.optionFuture(option, lots, profit, loss, type, is_live)
+            obj = sell_function.optionFuture(option, lots, profit, loss, type, is_live)
             
             stock_detail.objects.create(status="BUY", type= type, qty = obj['qty'], buy_price=obj['ltp'], sell_price = obj['squareoff'], stop_loseprice = obj['stoploss'], order_id = obj['orderId'], percentage_id=optionId['id'])
             
@@ -48,7 +48,7 @@ class buyStockFuture(APIView):
             is_live = request.data['is_live']
             obj = nse_setting.objects.filter(option = "STOCK FUTURE").values().first()
             
-            ltp, squareoff, stoploss, orderId, qty = SellFunction.stockFutureBuyPrice(stock, lots, profit, loss, type, is_live)
+            ltp, squareoff, stoploss, orderId, qty = sell_function.stockFutureBuyPrice(stock, lots, profit, loss, type, is_live)
             stock_detail.objects.create(status="BUY", type= type, stock_name = stock, qty = qty,  buy_price=ltp, sell_price = squareoff, stop_loseprice = stoploss, order_id = orderId, percentage_id=obj['id'])
             
             return JsonResponse({'orderId': orderId})

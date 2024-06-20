@@ -121,6 +121,7 @@ class stock_for_buy(models.Model):
 class pcr_values(models.Model):
     option_name = models.CharField(max_length=50, choices=option_names)
     pcr_value = models.FloatField(blank=True, default=0)
+    live_price= models.FloatField(blank=True, null=True, default=0.0)
     timestamp = models.DateTimeField(auto_now=True, null=True)
     
     def __str__(self):

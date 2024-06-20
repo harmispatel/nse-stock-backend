@@ -1,6 +1,6 @@
 import requests
 import json
-from nse_app.Scheduler.CoustomFun import Coustom
+from nse_app.Scheduler.helper import Helper
 from nse_app.models import *
 
 
@@ -44,13 +44,13 @@ def PcrUpdateFun():
             livePrice = api_data['records']['underlyingValue']
             filteredData = api_data['filtered']['data']
             
-            pcr = Coustom.pcrValue(api_data)
-            down_price = Coustom.downPrice(filteredData, livePrice)
-            up_price = Coustom.upPrice(filteredData, livePrice)
-            downSliceList = Coustom.downMaxValue(down_price[:-6:-1])
-            upSliceList = Coustom.upMaxValue(up_price[0:5])
-            PEMax, PEMaxValue = Coustom.basePriceData(down_price[:-6:-1], downSliceList)
-            CEMax, CEMaxValue = Coustom.resistancePriceData(up_price[0:5], upSliceList)
+            pcr = Helper.pcrValue(api_data)
+            down_price = Helper.downPrice(filteredData, livePrice)
+            up_price = Helper.upPrice(filteredData, livePrice)
+            downSliceList = Helper.downMaxValue(down_price[:-6:-1])
+            upSliceList = Helper.upMaxValue(up_price[0:5])
+            PEMax, PEMaxValue = Helper.basePriceData(down_price[:-6:-1], downSliceList)
+            CEMax, CEMaxValue = Helper.resistancePriceData(up_price[0:5], upSliceList)
             
             ## Down Side
             CE__fist_down = down_price[-1]['CE']['changeinOpenInterest'] + down_price[-1]['CE']['openInterest']

@@ -5,8 +5,8 @@ import requests
 import json
 from datetime import timedelta
 from rich.console import Console
-from .CoustomFun import Coustom
-from .SellFunction import sellFunOption, futureLivePrice, optionFuture, ltpData
+from .helper import Helper
+from .sell_function import sellFunOption, futureLivePrice, optionFuture, ltpData
 from datetime import date, datetime as dt
 import os
 from dotenv import load_dotenv
@@ -54,16 +54,16 @@ def NiftyApiFun():
     exprityDate = date(date_object.year, date_object.month, date_object.day)
     
     ## Check coustom conditions to get data from optionchain 
-    down_price = Coustom.downPrice(filteredData, livePrice)
-    up_price = Coustom.upPrice(filteredData, livePrice)
+    down_price = Helper.downPrice(filteredData, livePrice)
+    up_price = Helper.upPrice(filteredData, livePrice)
     
-    downSliceList = Coustom.downMaxValue(down_price[:-6:-1])
-    upSliceList = Coustom.upMaxValue(up_price[0:5])
+    downSliceList = Helper.downMaxValue(down_price[:-6:-1])
+    upSliceList = Helper.upMaxValue(up_price[0:5])
     
-    PEMax, PEMaxValue = Coustom.basePriceData(down_price, downSliceList)
-    CEMax, CEMaxValue = Coustom.resistancePriceData(up_price, upSliceList)
+    PEMax, PEMaxValue = Helper.basePriceData(down_price, downSliceList)
+    CEMax, CEMaxValue = Helper.resistancePriceData(up_price, upSliceList)
     
-    pcr = Coustom.pcrValue(api_data)
+    pcr = Helper.pcrValue(api_data)
     
     up_first_total_oi = ((up_price[0]['PE']['changeinOpenInterest'] + up_price[0]['PE']['openInterest']) - (up_price[0]['CE']['changeinOpenInterest'] + up_price[0]['CE']['openInterest']))
     down_first_total_oi = ((down_price[-1]['PE']['changeinOpenInterest'] + down_price[-1]['PE']['openInterest']) - (down_price[-1]['CE']['changeinOpenInterest'] + down_price[-1]['CE']['openInterest']))
@@ -180,13 +180,13 @@ def SettingFun():
         stock_details = [{'percentage_id':0, "status": '', "call_put":"",'buy_time':yesterday }]
 
     ## CALL Buy Condition
-    setBuyCondition_CALL, setOneStock_CALL = Coustom.buyCondition_withOneStock(stock_details, OptionId_CALL, "CALL", "NIFTY")
+    setBuyCondition_CALL, setOneStock_CALL = Helper.buyCondition_withOneStock(stock_details, OptionId_CALL, "CALL", "NIFTY")
     ## PUT Buy Condition
-    setBuyCondition_PUT, setOneStock_PUT = Coustom.buyCondition_withOneStock(stock_details, OptionId_PUT, "PUT", "NIFTY")
+    setBuyCondition_PUT, setOneStock_PUT = Helper.buyCondition_withOneStock(stock_details, OptionId_PUT, "PUT", "NIFTY")
     ## FUTURE BUY Condition
-    setBuyConditionFutureBuy = Coustom.buyConditionFuture(stock_details, OptionId_Future, 'BUY')
+    setBuyConditionFutureBuy = Helper.buyConditionFuture(stock_details, OptionId_Future, 'BUY')
     ## FUTURE SELL Condition
-    setBuyConditionFutureSell = Coustom.buyConditionFuture(stock_details, OptionId_Future, 'SELL')
+    setBuyConditionFutureSell = Helper.buyConditionFuture(stock_details, OptionId_Future, 'SELL')
 
 
 def NIFTY():

@@ -3,8 +3,8 @@ import requests
 import json
 from django.utils import timezone
 from rich.console import Console
-from .CoustomFun import Coustom
-from.SellFunction import sellFunStock, futureStockLivePrice
+from .helper import Helper
+from.sell_function import sellFunStock, futureStockLivePrice
 
 ## StockPcrCAllPut Code is in document folder
 
@@ -55,7 +55,7 @@ def stockFutureSell():
                 futureLive = futureStockLivePrice(stockName)
                 api_data = apiData(stockName)
                 # filteredData = api_data['filtered']['data']
-                pcr = Coustom.pcrValue(api_data)
+                pcr = Helper.pcrValue(api_data)
                 
                 if sell['type'] == 'BUY':
                     consoleGreen.print(f'{stockName} FUTURE BUY--->', 'enrty price:', buy_price, 'target_price:', sell_price, 'liveBidPrice:', futureLive, 'stop_Loss:', stop_loseprice)
@@ -129,7 +129,7 @@ def stockFutureSell():
 #                     OptionId_CALL = k['id']
             
 #             ## BUY Coondition
-#             setBuyCondition_CALL = Coustom.buyCondition(stock_details, OptionId_CALL, "CALL")
+#             setBuyCondition_CALL = Helper.buyCondition(stock_details, OptionId_CALL, "CALL")
                
 
 #             baseurl = "https://www.nseindia.com/"
@@ -144,19 +144,19 @@ def stockFutureSell():
 #             livePrice = stock_response['records']['underlyingValue']
 #             filteredData = stock_response['filtered']['data']
 
-#             down_price = Coustom.downPrice(filteredData, livePrice)
+#             down_price = Helper.downPrice(filteredData, livePrice)
 
-#             up_price = Coustom.upPrice(filteredData, livePrice)
+#             up_price = Helper.upPrice(filteredData, livePrice)
             
-#             downSliceList = Coustom.downMaxValue(down_price[:-6:-1])
+#             downSliceList = Helper.downMaxValue(down_price[:-6:-1])
 
-#             upSliceList = Coustom.upMaxValue(up_price[0:5])
+#             upSliceList = Helper.upMaxValue(up_price[0:5])
 
-#             PEMax, PEMaxValue = Coustom.basePriceData(down_price[:-6:-1], downSliceList)
+#             PEMax, PEMaxValue = Helper.basePriceData(down_price[:-6:-1], downSliceList)
             
-#             CEMax, CEMaxValue = Coustom.resistancePriceData(up_price[0:5], upSliceList)
+#             CEMax, CEMaxValue = Helper.resistancePriceData(up_price[0:5], upSliceList)
 
-#             pcr = Coustom.pcrValue(stock_response)
+#             pcr = Helper.pcrValue(stock_response)
 
 
 #             for mx in PEMax:
@@ -257,7 +257,7 @@ def stockFutureSell():
 #                 if k['option'] == "STOCK PE":
 #                     OptionId_CALL = k['id']
                     
-#             setBuyCondition_CALL = Coustom.buyCondition(stock_details, OptionId_CALL, "PUT")   
+#             setBuyCondition_CALL = Helper.buyCondition(stock_details, OptionId_CALL, "PUT")   
 
 #             baseurl = "https://www.nseindia.com/"
 #             headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, ''like Gecko) ''Chrome/80.0.3987.149 Safari/537.36','accept-language': 'en,gu;q=0.9,hi;q=0.8', 'accept-encoding': 'gzip, deflate, br'}
@@ -271,19 +271,19 @@ def stockFutureSell():
 #             livePrice = stock_response['records']['underlyingValue']
 #             filteredData = stock_response['filtered']['data']
 
-#             down_price = Coustom.downPrice(filteredData, livePrice)
+#             down_price = Helper.downPrice(filteredData, livePrice)
 
-#             up_price = Coustom.upPrice(filteredData, livePrice)
+#             up_price = Helper.upPrice(filteredData, livePrice)
             
-#             downSliceList = Coustom.downMaxValue(down_price[:-6:-1])
+#             downSliceList = Helper.downMaxValue(down_price[:-6:-1])
 
-#             upSliceList = Coustom.upMaxValue(up_price[0:5])
+#             upSliceList = Helper.upMaxValue(up_price[0:5])
 
-#             PEMax, PEMaxValue = Coustom.basePriceData(down_price[:-6:-1], downSliceList)
+#             PEMax, PEMaxValue = Helper.basePriceData(down_price[:-6:-1], downSliceList)
             
-#             CEMax, CEMaxValue = Coustom.resistancePriceData(up_price[0:5], upSliceList)
+#             CEMax, CEMaxValue = Helper.resistancePriceData(up_price[0:5], upSliceList)
 
-#             pcr = Coustom.pcrValue(stock_response)
+#             pcr = Helper.pcrValue(stock_response)
 
 
 #             for mx in CEMax:

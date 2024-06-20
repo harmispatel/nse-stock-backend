@@ -6,8 +6,8 @@ import requests
 import json
 from datetime import timedelta
 from rich.console import Console
-from .CoustomFun import Coustom
-from .SellFunction import sellFunOption, futureLivePrice, optionFuture, ltpData
+from .helper import Helper
+from .sell_function import sellFunOption, futureLivePrice, optionFuture, ltpData
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -22,12 +22,11 @@ BANKNIFTY_PE = os.getenv('BANKNIFTY_PE')
 BANKNIFTY_FUTURE = os.getenv('BANKNIFTY_FUTURE')
 
 BANKNIFTY_URL = os.getenv('BANKNIFTY_URL')
-# BANKNIFTY_URL = 'https://www.nseindia.com/api/option-chain-indices?symbol=BANKNIFTY'
 SETTINGS_URL = os.getenv('SETTINGS_URL')
 # SETTINGS_URL = 'http://zerodha.harmistechnology.com/settings'
 
 
-def BankniftyApiFun():
+def bankniftyApiFun():
     ##  Set variable as global to use across different functions 
     global api_data, livePrice, timestamp, filteredData, PEMax, CEMax, down_price, up_price, downSliceList, upSliceList, pcr, base_Price_down, base_Price_up
     global up_first_total_oi, down_first_total_oi, CEMaxValue, PEMaxValue, exprityDate, oi_total_call, oi_total_put
@@ -54,16 +53,16 @@ def BankniftyApiFun():
     exprityDate = date(date_object.year, date_object.month, date_object.day)
     
     ## Check coustom conditions to get data from optionchain 
-    down_price = Coustom.downPrice(filteredData, livePrice)
-    up_price = Coustom.upPrice(filteredData, livePrice)
+    down_price = Helper.downPrice(filteredData, livePrice)
+    up_price = Helper.upPrice(filteredData, livePrice)
     
-    downSliceList = Coustom.downMaxValue(down_price[:-6:-1])
-    upSliceList = Coustom.upMaxValue(up_price[0:5])
+    downSliceList = Helper.downMaxValue(down_price[:-6:-1])
+    upSliceList = Helper.upMaxValue(up_price[0:5])
     
-    PEMax, PEMaxValue = Coustom.basePriceData(down_price[:-6:-1], downSliceList)
-    CEMax, CEMaxValue = Coustom.resistancePriceData(up_price[0:5], upSliceList)
+    PEMax, PEMaxValue = Helper.basePriceData(down_price[:-6:-1], downSliceList)
+    CEMax, CEMaxValue = Helper.resistancePriceData(up_price[0:5], upSliceList)
     
-    pcr = Coustom.pcrValue(api_data)
+    pcr = Helper.pcrValue(api_data)
     pcr = round(pcr, 2)
     
     down_first_total_oi = ((down_price[-1]['PE']['changeinOpenInterest'] + down_price[-1]['PE']['openInterest']) - (down_price[-1]['CE']['changeinOpenInterest'] + down_price[-1]['CE']['openInterest']))
@@ -105,7 +104,7 @@ def BankniftyApiFun():
             base_Price_up.append(upSlice3)  
             break 
 
-def SettingFun():
+def settingFun():
     
     global stock_details, nseSetting, live_obj, pcr_options, is_live_banknifty, is_op_fut_banknifty
     global PcrObj_Call_ID, banknifty_pcr_stoploss_CALL, banknifty_at_set_pcr_CALL, banknifty_live_pcr, PcrObj_Put_ID, banknifty_pcr_stoploss_PUT, banknifty_at_set_pcr_PUT
@@ -185,13 +184,13 @@ def SettingFun():
 
 
     ## CALL Buy Condition
-    setBuyCondition_CALL, setOneStock_CALL = Coustom.buyCondition_withOneStock(stock_details, OptionId_CALL, "CALL", "BANKNIFTY")
+    setBuyCondition_CALL, setOneStock_CALL = Helper.buyCondition_withOneStock(stock_details, OptionId_CALL, "CALL", "BANKNIFTY")
     ## PUT Buy Condition
-    setBuyCondition_PUT, setOneStock_PUT = Coustom.buyCondition_withOneStock(stock_details, OptionId_PUT, "PUT", "BANKNIFTY")
+    setBuyCondition_PUT, setOneStock_PUT = Helper.buyCondition_withOneStock(stock_details, OptionId_PUT, "PUT", "BANKNIFTY")
     ## FUTURE BUY Condition
-    setBuyConditionFutureBuy = Coustom.buyConditionFuture(stock_details, OptionId_Future, 'BUY')
+    setBuyConditionFutureBuy = Helper.buyConditionFuture(stock_details, OptionId_Future, 'BUY')
     ## FUTURE SELL Condition
-    setBuyConditionFutureSell = Coustom.buyConditionFuture(stock_details, OptionId_Future, 'SELL')
+    setBuyConditionFutureSell = Helper.buyConditionFuture(stock_details, OptionId_Future, 'SELL')
 
 
 def BANKNIFTY():
@@ -209,8 +208,8 @@ def BANKNIFTY():
             '''
             Call both function, It sets variable in global, we can use them here 
             '''
-            SettingFun()
-            BankniftyApiFun()
+            settingFun()
+            bankniftyApiFun()
             
             
             ## CALL BUY

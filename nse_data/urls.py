@@ -4,10 +4,10 @@ from django.urls import path, include
 from rest_framework.authtoken import views
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from nse_app.Scheduler.BankNifty import BANKNIFTY
-from nse_app.Scheduler.Nifty import NIFTY
-from nse_app.Scheduler.PcrValues import PcrValues
-from nse_app.Scheduler.Stock import stockFutureSell
+from nse_app.Scheduler.bank_nifty import BANKNIFTY
+from nse_app.Scheduler.nifty import NIFTY
+from nse_app.Scheduler.pcr_values import PcrValues
+from nse_app.Scheduler.stock import stockFutureSell
 
 
 urlpatterns = [
