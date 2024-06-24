@@ -46,12 +46,12 @@ class Helper():
         PEMax = []
         PEMaxValue = []
         for down in down_price:
-            var = down['PE']['changeinOpenInterest'] + down['PE']['openInterest']
-            if var == downSliceList[0]:
-                PEMax.append(down)
-                PEMaxValue.append(down['strikePrice'])
-        
-        return PEMax, PEMaxValue
+            if down['PE']:
+                var = down['PE']['changeinOpenInterest'] + down['PE']['openInterest']
+                if var == downSliceList[0]:
+                    PEMax.append(down)
+                    PEMaxValue.append(down['strikePrice'])
+            return PEMax, PEMaxValue
     
     def resistancePriceData(up_price, upSliceList):
         CEMax = []
@@ -112,8 +112,16 @@ class Helper():
                     loss = loss + 1
         if profit > loss:
             setOneStock = False
-            # consoleGreen.print(f"YOU MAKE PROFIT TODAY IN {option} {call_put}")
         else:
             setOneStock = True
             
         return setBuyCondition, setOneStock
+
+    def isBuyCondition(stock_details, OptionId):
+        for i in stock_details:
+            if i['percentage_id'] == OptionId and i['status'] == 'BUY':
+                setBuyCondition = False
+                break
+            else:
+                setBuyCondition = True
+        return setBuyCondition
