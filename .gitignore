@@ -1,8 +1,12 @@
 nifty.txt
 bank_nifty.txt
 data.csv
-__pycache__
+*.pyc
+__pycache__/
 
 # environments
 venv
 .venv
+
+
+.env
