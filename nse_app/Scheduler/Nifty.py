@@ -171,7 +171,7 @@ def SettingFun():
     if stock_details.exists():
         pass
     else:
-        now = datetime.now()
+        now = datetime.datetime.now()
         yesterday = now - timedelta(days = 1)
         stock_details = [{'percentage_id':0, "status": '', "call_put":"",'buy_time':yesterday }]
 
