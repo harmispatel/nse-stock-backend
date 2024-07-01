@@ -13,9 +13,7 @@ def PcrValues():
         ## BANKNIFTY PCR and LIVE PRICE
         if current_time in TIMES_15_MIN:
             url = BANKNIFTY_URL
-            response = requests.get(url, headers=api_headers)
-            data = response.text
-            api_data = json.loads(data)
+            api_data = requests.get(url, headers=api_headers).json()
             
             pcr = Helper.pcrValue(api_data)
             livePrice = api_data['records']['underlyingValue']
@@ -25,11 +23,9 @@ def PcrValues():
         ## NIFTY PCR and LIVE PRICE
         if current_time in TIMES_15_MIN:
             url_nifty = NIFTY_URL
-            response_nifty = requests.get(url_nifty, headers=api_headers)
-            data_nifty = response_nifty.text
-            api_data_nifty = json.loads(data_nifty)
+            api_data_nifty = requests.get(url_nifty, headers=api_headers).json()
             pcr_nifty = Helper.pcrValue(api_data_nifty)
-            livePriceNifty = api_data['records']['underlyingValue']
+            livePriceNifty = api_data_nifty['records']['underlyingValue']
             pcr_values.objects.create(option_name='NIFTY', pcr_value=pcr_nifty, live_price=livePriceNifty)
             print('Pcr Nifty->', pcr_nifty)
             

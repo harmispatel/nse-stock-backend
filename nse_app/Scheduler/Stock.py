@@ -5,6 +5,7 @@ from django.utils import timezone
 from rich.console import Console
 from .helper import Helper
 from.sell_function import sellFunStock, futureStockLivePrice
+import datetime
 
 ## StockPcrCAllPut Code is in document folder
 
@@ -29,68 +30,73 @@ def stockFutureSell():
             
             return response
 
+        current_time = datetime.datetime.now().time()
+        start_time = datetime.time(hour=9, minute=15)
+        end_time = datetime.time(hour=15, minute=30)
         
-        stock_details = stock_detail.objects.values().order_by("-buy_time")[:50]
-        nseSetting = nse_setting.objects.values()
-        
-        for setting in nseSetting: 
-            if setting['option'] == 'STOCK FUTURE':       ## Name as per Local DB
-                OptionId_Future = setting['id']
-                
-                
-        for sell in stock_details:
-            ## FUTURE SELL
-            if sell['status'] == 'BUY' and sell['percentage_id'] == OptionId_Future:
-                sell_time = timezone.now()
-                if sell['base_strike_price']: 
-                    strikePrice = sell['base_strike_price']
-                else:
-                    strikePrice = 0
+        if start_time <= current_time <= end_time:
+
+            stock_details = stock_detail.objects.values().order_by("-buy_time")[:50]
+            nseSetting = nse_setting.objects.values()
+            
+            for setting in nseSetting: 
+                if setting['option'] == 'STOCK FUTURE':       ## Name as per Local DB
+                    OptionId_Future = setting['id']
                     
-                stockName = sell['stock_name']
-                id = sell['id']
-                buy_price = sell['buy_price']
-                sell_price = sell['sell_price']
-                stop_loseprice = sell['stop_loseprice']
-                futureLive = futureStockLivePrice(stockName)
-                api_data = apiData(stockName)
-                # filteredData = api_data['filtered']['data']
-                pcr = Helper.pcrValue(api_data)
-                
-                if sell['type'] == 'BUY':
-                    consoleGreen.print(f'{stockName} FUTURE BUY--->', 'enrty price:', buy_price, 'target_price:', sell_price, 'liveBidPrice:', futureLive, 'stop_Loss:', stop_loseprice)
-                    if sell_price <= futureLive :
-                        final_status = "PROFIT"
-                        stock_detail.objects.filter(id=id).update(status = 'SELL', exit_price = futureLive, sell_buy_time=sell_time, final_status = final_status, admin_call= True, exit_pcr= '%.2f'% (pcr))
-                        consoleYellow.print(f"Successfully SELL STOCK OF {stockName} FUTURE")
-                    if stop_loseprice >= futureLive:
-                        final_status = "LOSS"
-                        stock_detail.objects.filter(id=id).update(status = 'SELL', exit_price = futureLive, sell_buy_time=sell_time, final_status = final_status,admin_call = True, exit_pcr= '%.2f'% (pcr) )
-                        consoleYellow.print(f"Successfully SELL STOCK OF {stockName} FUTURE")
-                    if sell['admin_call'] == True:
-                        if buy_price <= futureLive:
-                            final_status = 'PROFIT'
-                        else:
-                            final_status = 'LOSS'
-                        stock_detail.objects.filter(id=id).update(status = 'SELL', exit_price = futureLive, sell_buy_time=sell_time, final_status = final_status, exit_pcr= '%.2f'% (pcr))
-                        consoleYellow.print(f"Successfully SELL STOCK OF {stockName} FUTURE")
-                elif sell['type'] == 'SELL':
-                    consoleGreen.print(f'{stockName} FUTURE SELL--->', 'enrty price:', buy_price, 'target_price:', sell_price, 'liveBidPrice:', futureLive, 'stop_Loss:', stop_loseprice)
-                    if sell_price >= futureLive :
-                        final_status = "PROFIT"
-                        stock_detail.objects.filter(id=id).update(status = 'SELL', exit_price = futureLive, sell_buy_time=sell_time, final_status = final_status, admin_call= True, exit_pcr= '%.2f'% (pcr))
-                        consoleYellow.print(f"Successfully SELL STOCK OF {stockName} FUTURE")
-                    if stop_loseprice <= futureLive:
-                        final_status = "LOSS"
-                        stock_detail.objects.filter(id=id).update(status = 'SELL', exit_price = futureLive, sell_buy_time=sell_time, final_status = final_status,admin_call = True, exit_pcr= '%.2f'% (pcr) )
-                        consoleYellow.print(f"Successfully SELL STOCK OF {stockName} FUTURE")
-                    if sell['admin_call'] == True:
-                        if buy_price > futureLive:
-                            final_status = 'PROFIT'
-                        else:
-                            final_status = 'LOSS'
-                        stock_detail.objects.filter(id=id).update(status = 'SELL', exit_price = futureLive, sell_buy_time=sell_time, final_status = final_status, exit_pcr= '%.2f'% (pcr))
-                        consoleYellow.print(f"Successfully SELL STOCK OF {stockName} FUTURE")
+                    
+            for sell in stock_details:
+                ## FUTURE SELL
+                if sell['status'] == 'BUY' and sell['percentage_id'] == OptionId_Future:
+                    sell_time = timezone.now()
+                    if sell['base_strike_price']: 
+                        strikePrice = sell['base_strike_price']
+                    else:
+                        strikePrice = 0
+                        
+                    stockName = sell['stock_name']
+                    id = sell['id']
+                    buy_price = sell['buy_price']
+                    sell_price = sell['sell_price']
+                    stop_loseprice = sell['stop_loseprice']
+                    futureLive = futureStockLivePrice(stockName)
+                    api_data = apiData(stockName)
+                    # filteredData = api_data['filtered']['data']
+                    pcr = Helper.pcrValue(api_data)
+                    
+                    if sell['type'] == 'BUY':
+                        consoleGreen.print(f'{stockName} FUTURE BUY--->', 'enrty price:', buy_price, 'target_price:', sell_price, 'liveBidPrice:', futureLive, 'stop_Loss:', stop_loseprice)
+                        if sell_price <= futureLive :
+                            final_status = "PROFIT"
+                            stock_detail.objects.filter(id=id).update(status = 'SELL', exit_price = futureLive, sell_buy_time=sell_time, final_status = final_status, admin_call= True, exit_pcr= '%.2f'% (pcr))
+                            consoleYellow.print(f"Successfully SELL STOCK OF {stockName} FUTURE")
+                        if stop_loseprice >= futureLive:
+                            final_status = "LOSS"
+                            stock_detail.objects.filter(id=id).update(status = 'SELL', exit_price = futureLive, sell_buy_time=sell_time, final_status = final_status,admin_call = True, exit_pcr= '%.2f'% (pcr) )
+                            consoleYellow.print(f"Successfully SELL STOCK OF {stockName} FUTURE")
+                        if sell['admin_call'] == True:
+                            if buy_price <= futureLive:
+                                final_status = 'PROFIT'
+                            else:
+                                final_status = 'LOSS'
+                            stock_detail.objects.filter(id=id).update(status = 'SELL', exit_price = futureLive, sell_buy_time=sell_time, final_status = final_status, exit_pcr= '%.2f'% (pcr))
+                            consoleYellow.print(f"Successfully SELL STOCK OF {stockName} FUTURE")
+                    elif sell['type'] == 'SELL':
+                        consoleGreen.print(f'{stockName} FUTURE SELL--->', 'enrty price:', buy_price, 'target_price:', sell_price, 'liveBidPrice:', futureLive, 'stop_Loss:', stop_loseprice)
+                        if sell_price >= futureLive :
+                            final_status = "PROFIT"
+                            stock_detail.objects.filter(id=id).update(status = 'SELL', exit_price = futureLive, sell_buy_time=sell_time, final_status = final_status, admin_call= True, exit_pcr= '%.2f'% (pcr))
+                            consoleYellow.print(f"Successfully SELL STOCK OF {stockName} FUTURE")
+                        if stop_loseprice <= futureLive:
+                            final_status = "LOSS"
+                            stock_detail.objects.filter(id=id).update(status = 'SELL', exit_price = futureLive, sell_buy_time=sell_time, final_status = final_status,admin_call = True, exit_pcr= '%.2f'% (pcr) )
+                            consoleYellow.print(f"Successfully SELL STOCK OF {stockName} FUTURE")
+                        if sell['admin_call'] == True:
+                            if buy_price > futureLive:
+                                final_status = 'PROFIT'
+                            else:
+                                final_status = 'LOSS'
+                            stock_detail.objects.filter(id=id).update(status = 'SELL', exit_price = futureLive, sell_buy_time=sell_time, final_status = final_status, exit_pcr= '%.2f'% (pcr))
+                            consoleYellow.print(f"Successfully SELL STOCK OF {stockName} FUTURE")
     except Exception as e:
         print('Error-->', e)
         print("Connection refused by the server........................................ STOCK")

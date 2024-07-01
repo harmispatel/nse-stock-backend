@@ -9,6 +9,10 @@ from import_export import resources, fields
 class nsesetting(admin.ModelAdmin):
     list_display = ['option', 'profit_percentage', 'loss_percentage', 'set_pcr', 'baseprice_plus' ]
 
+@admin.register(pcr_values)
+class pcr_values(admin.ModelAdmin):
+    list_display = ['option_name', 'pcr_value', 'live_price', 'timestamp' ]
+
 
 class StockDetailResource(resources.ModelResource):
     percentage = fields.Field(

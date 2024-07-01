@@ -10,7 +10,7 @@ from .helper import Helper
 from .sell_function import sellFunOption, futureLivePrice, optionFuture, ltpData
 import os
 from dotenv import load_dotenv
-from .utils import formatTime, oiDiff, formatDate
+from .utils import formatTime, oiDiff, formatDate, nearest_previous_15_min_from_list, getSpotPriceFromDB
 from nse_app.utils import api_headers
 load_dotenv()
 
@@ -189,8 +189,8 @@ def BANKNIFTY():
     global today, current_time
     current_time = datetime.datetime.now().time()
     today = datetime.datetime.today()
-    start_time = datetime.time(hour=0, minute=10)
-    end_time = datetime.time(hour=23, minute=59)
+    start_time = datetime.time(hour=9, minute=15)
+    end_time = datetime.time(hour=15, minute=15)
     
     if start_time <= current_time <= end_time:
         try:
@@ -216,7 +216,7 @@ def BANKNIFTY():
         
         except Exception as e:
             consoleRed.print('Error BankNifty -->', e)
-            consoleRed.print("Connection refused by the server............................................. BANKNIFTY")
+            consoleRed.print("There is some Internal error ............................................. BANKNIFTY")
 
 
 def buyOnOptionGivenTime():
@@ -229,42 +229,57 @@ def buyOnOptionGivenTime():
 
     if isBuyCondition == True:
         response = requests.post(url, {
-            "date": formatDate(today)
+            'date': formatDate(today)
+            # 'date': '2024-07-02'
         }).json()
-        data = response['data']['data'][0]
-        start_time = formatTime(data['start_time'])
-        print('BankNifty-------->', start_time, '==',  formatTime(current_time))
-        if start_time == formatTime(current_time) and(data['nifty_or_banknifty'] == 'BANKNIFTY' or data['nifty_or_banknifty'] == 'Both'):
-            bidPrice = 0
-            if data['buy_or_sale'] == None:
-                call_or_put = 'CALL'
-                strikeData = down_price[-1]
-                strikePrice = strikeData['strikePrice']
-                bidPrice = ltpData('BANKNIFTY', strikePrice, 'CE', exprityDate)
-                targetPrice = bidPrice + int(data['target_price'])
-                stopLossPrice = bidPrice - (int(data['target_price']) / 2)
-            if data['buy_or_sale'] == 'SELL':
-                call_or_put = 'PUT'
-                strikeData = up_price[0]
-                strikePrice = strikeData['strikePrice']
-                bidPrice = ltpData('BANKNIFTY', strikePrice, 'PE', exprityDate)
-                targetPrice = bidPrice + int(data['target_price'])
-                stopLossPrice = bidPrice - (int(data['target_price']) / 2)
-            if bidPrice:
-                stock_detail.objects.create(
-                    status="BUY", 
-                    qty= int(data['quantity'])*15, 
-                    buy_price = bidPrice, 
-                    base_strike_price=strikePrice, 
-                    live_Strike_price=livePrice, 
-                    live_brid_price=bidPrice, 
-                    sell_price= targetPrice ,
-                    stop_loseprice=stopLossPrice, 
-                    percentage_id=OptionId_CALL , 
-                    call_put =call_or_put, 
-                    buy_pcr = '%.2f'% (pcr) 
-                    )
-                print(f'SUCCESS BUY AT: {start_time} -> buyPrice: {bidPrice}')
+
+        if response['success'] == True:
+            data = response['data']['data'][0]
+            start_time = formatTime(data['start_time'])
+            print('BankNifty -------->', start_time, '==',  formatTime(current_time))
+
+            if start_time == formatTime(current_time) and(data['nifty_or_banknifty'] == 'BANKNIFTY' or data['nifty_or_banknifty'] == 'Both'):
+                if  data['buy_or_sale'] != 'BUY' or 'SELL': 
+                    nearest_previous_15_min = nearest_previous_15_min_from_list(formatTime(current_time))
+                    record_given_time, record_15_min_before = getSpotPriceFromDB(nearest_previous_15_min, 'BANKNIFTY', pcr_values)
+                    if record_given_time is not None and record_15_min_before is not None:
+                        if record_given_time.live_price > record_15_min_before.live_price:
+                            data['buy_or_sale'] = 'SELL'
+                        else:
+                            data['buy_or_sale'] = 'BUY'
+
+                bidPrice = 0
+                if data['buy_or_sale'] == 'BUY':
+                    call_or_put = 'CALL'
+                    strikeData = down_price[-1]
+                    strikePrice = strikeData['strikePrice']
+                    bidPrice = ltpData('BANKNIFTY', strikePrice, 'CE', exprityDate)
+                    targetPrice = bidPrice + int(data['target_price'])
+                    stopLossPrice = bidPrice - (int(data['target_price']) / 2)
+                if data['buy_or_sale'] == 'SELL':
+                    call_or_put = 'PUT'
+                    strikeData = up_price[0]
+                    strikePrice = strikeData['strikePrice']
+                    bidPrice = ltpData('BANKNIFTY', strikePrice, 'PE', exprityDate)
+                    targetPrice = bidPrice + int(data['target_price'])
+                    stopLossPrice = bidPrice - (int(data['target_price']) / 2)
+                if bidPrice:
+                    stock_detail.objects.create(
+                        status="BUY", 
+                        qty= int(data['quantity'])*15, 
+                        buy_price = bidPrice, 
+                        base_strike_price=strikePrice, 
+                        live_Strike_price=livePrice, 
+                        live_brid_price=bidPrice, 
+                        sell_price= targetPrice ,
+                        stop_loseprice=stopLossPrice, 
+                        percentage_id=OptionId_CALL , 
+                        call_put =call_or_put, 
+                        buy_pcr = '%.2f'% (pcr) 
+                        )
+                    consoleGreen.print(f'BANKNIFTY SUCCESS BUY AT: {start_time} -> buyPrice: {bidPrice}')
+        else:
+            consoleRed.print('Error is in api, Please check -> "currentDateGrah" API')
             
 
 def callBuy():
