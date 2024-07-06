@@ -235,10 +235,10 @@ def buyOnOptionGivenTime():
 
         if response['success'] == True:
             data = response['data']['data'][0]
-            start_time = formatTime(data['start_time'])
-            print('BankNifty -------->', start_time, '==',  formatTime(current_time))
+            end_time = formatTime(data['end_time'])
+            print('BankNifty -------->', end_time, '==',  formatTime(current_time))
 
-            if start_time == formatTime(current_time) and(data['nifty_or_banknifty'] == 'BANKNIFTY' or data['nifty_or_banknifty'] == 'Both'):
+            if end_time == formatTime(current_time) and data['featureby_or_optionby'] == 'Option' and (data['nifty_or_banknifty'] == 'BANKNIFTY' or data['nifty_or_banknifty'] == 'Both'):
                 if  data['buy_or_sale'] != 'BUY' or 'SELL': 
                     nearest_previous_15_min = nearest_previous_15_min_from_list(formatTime(current_time))
                     record_given_time, record_15_min_before = getSpotPriceFromDB(nearest_previous_15_min, 'BANKNIFTY', pcr_values)
@@ -264,7 +264,7 @@ def buyOnOptionGivenTime():
                     targetPrice = bidPrice + int(data['target_price'])
                     stopLossPrice = bidPrice - (int(data['target_price']) / 2)
                 if bidPrice:
-                    stock_detail.objects.create(
+                    sell_data = stock_detail.objects.create(
                         status="BUY", 
                         qty= int(data['quantity'])*15, 
                         buy_price = bidPrice, 
@@ -276,8 +276,10 @@ def buyOnOptionGivenTime():
                         percentage_id=OptionId_CALL , 
                         call_put =call_or_put, 
                         buy_pcr = '%.2f'% (pcr) 
-                        )
-                    consoleGreen.print(f'BANKNIFTY SUCCESS BUY AT: {start_time} -> buyPrice: {bidPrice}')
+                    )
+                    if is_live_banknifty == True:
+                        sellFunOption(strikePrice, bidPrice, data['target_price'], str(int(data['target_price']) / 2), OptionId_CALL, data['quantity'], sell_data.id, exprityDate)    
+                    consoleGreen.print(f'BANKNIFTY SUCCESS BUY AT: {end_time} -> buyPrice: {bidPrice}')
         else:
             consoleRed.print('Error is in api, Please check -> "currentDateGrah" API')
             
@@ -310,7 +312,7 @@ def callBuy():
                     percentage_id=OptionId_CALL , 
                     call_put =call_call, 
                     buy_pcr = '%.2f'% (pcr) 
-                    )
+                )
                 if is_live_banknifty == True:
                     sellFunOption(strikePrice_CE, BidPrice_CE, squareoff_CE, stoploss_CE, OptionId_CALL, lot_size_CALL, obj_banknifty_old.id, exprityDate)
                 print('SuccessFully Buy IN BANKNIFTY CALL: ', postData) 
