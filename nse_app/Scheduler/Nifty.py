@@ -38,9 +38,11 @@ def NiftyApiFun():
     
     url = NIFTY_URL
     
-    response = requests.get(url, headers=api_headers)
-    data = response.text
-    api_data = json.loads(data)
+    try:
+        api_data = requests.get(url, headers=api_headers).json()
+    except Exception as e:
+        consoleRed.print('ERROR IN NIFTY ------------>', 'This error is because of NSE nifty API')
+
     filteredData = api_data['filtered']['data']
     timestamp = api_data['records']['timestamp']
     livePrice = api_data['records']['underlyingValue']
@@ -129,9 +131,11 @@ def SettingFun():
 
     ## API SETTINGS ZERODHA HARMIS
     settings_url = SETTINGS_URL
-    response = requests.get(settings_url)
-    settings_data = response.text
-    settings_data = json.loads(settings_data)
+    try:
+        settings_data = requests.get(settings_url).json()
+    except Exception as e:
+        consoleRed.print('ERROR IN NIFTY ------------>', 'This error is because of setting API')
+
     settings_data_api = settings_data['data']
     is_live_nifty = settings_data['liveSettings'][0]['live_nifty']
     is_op_fut_nifty = settings_data['liveSettings'][0]['op_fut_nifty']
@@ -214,8 +218,9 @@ def NIFTY():
             sell_stock_logic(stock_details, OptionId_PUT, filteredData, pcr)
             
         except Exception as e:
-            consoleRed.print('Error-->', e)
-            consoleRed.print("Connection refused by the server...................................... NIFTY")
+            pass
+            # consoleRed.print('Error-->', e)
+            # consoleRed.print("Connection refused by the server...................................... NIFTY")
 
 
 def buyOnOptionGivenTime():
@@ -227,9 +232,10 @@ def buyOnOptionGivenTime():
     isBuyCondition = Helper.isBuyCondition(stock_details, OptionId_CALL)
 
     if isBuyCondition == True:
-        response = requests.post(url, {
-            "date": formatDate(today)
-        }).json()
+        try:
+            response = requests.get(url).json()
+        except Exception as e:
+            consoleRed.print('ERROR IN NIFTY ------------>', 'This error is because of currentDateGrah API')        
 
         if response['success'] == True:
             data = response['data']['data'][0]

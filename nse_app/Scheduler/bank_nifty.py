@@ -33,8 +33,10 @@ def bankniftyApiFun():
     global up_first_total_oi, down_first_total_oi, CEMaxValue, PEMaxValue, exprityDate, oi_total_call, oi_total_put
 
     url = BANKNIFTY_URL
-    
-    api_data = requests.get(url, headers=api_headers).json()
+    try:
+        api_data = requests.get(url, headers=api_headers).json()
+    except Exception as e:
+        consoleRed.print('ERROR IN BANKNIFTY ------------>', 'This error is because of NSE banknifty API')
     
     timestamp = api_data['records']['timestamp']
     livePrice = api_data['records']['underlyingValue']
@@ -127,7 +129,10 @@ def settingFun():
 
     ## API SETTINGS ZERODHA HARMIS
     settings_url = SETTINGS_URL
-    settings_data = requests.get(settings_url).json()
+    try:
+        settings_data = requests.get(settings_url).json()
+    except Exception as e:
+        consoleRed.print('ERROR IN BANKNIFTY ------------>', 'This error is because of setting API')
     settings_data_api = settings_data['data']
     is_live_banknifty = settings_data['liveSettings'][0]['live_banknifty']
     is_op_fut_banknifty = settings_data['liveSettings'][0]['op_fut_banknifty']
@@ -215,8 +220,9 @@ def BANKNIFTY():
             sell_stock_logic(stock_details, OptionId_PUT, filteredData, pcr)
         
         except Exception as e:
-            consoleRed.print('Error BankNifty -->', e)
-            consoleRed.print("There is some Internal error ............................................. BANKNIFTY")
+            pass
+            # consoleRed.print('Error in BANKNIFTY ------>', e)
+            # consoleRed.print("There is some Internal error ............................................. BANKNIFTY")
 
 
 def buyOnOptionGivenTime():
@@ -228,10 +234,10 @@ def buyOnOptionGivenTime():
     isBuyCondition = Helper.isBuyCondition(stock_details, OptionId_CALL)
 
     if isBuyCondition == True:
-        response = requests.post(url, {
-            'date': formatDate(today)
-            # 'date': '2024-07-02'
-        }).json()
+        try:
+            response = requests.get(url).json()
+        except Exception as e:
+            consoleRed.print('ERROR IN BANKNIFTY ------------>', 'This error is because of currentDateGrah API')        
 
         if response['success'] == True:
             data = response['data']['data'][0]
