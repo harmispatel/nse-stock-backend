@@ -233,57 +233,69 @@ def buyOnOptionGivenTime():
 
     if isBuyCondition == True:
         try:
-            response = requests.get(url).json()
+            response = requests.post(url, {
+                "date": formatDate(today)
+            }).json()
         except Exception as e:
             consoleRed.print('ERROR IN NIFTY ------------>', 'This error is because of currentDateGrah API')        
 
         if response['success'] == True:
-            data = response['data']['data'][0]
-            end_time = formatTime(data['end_time'])
-            print('Nifty -------->', end_time, '==',  formatTime(current_time))
-            
-            if end_time == formatTime(current_time) and data['featureby_or_optionby'] == 'Option' and (data['nifty_or_banknifty'] == 'NIFTY' or data['nifty_or_banknifty'] == 'Both'):
-                if  data['buy_or_sale'] != 'BUY' or 'SELL': 
-                    nearest_previous_15_min = nearest_previous_15_min_from_list(formatTime(current_time))
-                    record_given_time, record_15_min_before = getSpotPriceFromDB(nearest_previous_15_min, 'NIFTY', pcr_values)
-                    if record_given_time is not None and record_15_min_before is not None:
-                        if record_given_time.live_price > record_15_min_before.live_price:
-                            data['buy_or_sale'] = 'SELL'
-                        else:
-                            data['buy_or_sale'] = 'BUY'
+            for data in response['data']['data']:
+                end_time = formatTime(data['end_time'])
+                print('Nifty -------->', end_time, '==',  formatTime(current_time))
+                
+                if end_time == formatTime(current_time) and data['featureby_or_optionby'] == 'Option' and (data['nifty_or_banknifty'] == 'NIFTY' or data['nifty_or_banknifty'] == 'Both'):
+                    file = open("nifty_logs.txt", "a")
+                    file.write(f'-------------> NIFTY BUYING ON {today.date()} at {end_time} \n')                   
+                    if  data['buy_or_sale'] != 'BUY' or 'SELL': 
+                        nearest_previous_15_min = nearest_previous_15_min_from_list(formatTime(current_time))
+                        if nearest_previous_15_min != None:
+                            record_given_time, record_15_min_before = getSpotPriceFromDB(nearest_previous_15_min, 'NIFTY', pcr_values)
+                            if record_given_time is not None and record_15_min_before is not None:
+                                if record_given_time.live_price > record_15_min_before.live_price:
+                                    data['buy_or_sale'] = 'SELL'
+                                else:
+                                    data['buy_or_sale'] = 'BUY'
 
-                bidPrice = 0
-                if data['buy_or_sale'] == None:
-                    call_or_put = 'CALL'
-                    strikeData = down_price[-1]
-                    strikePrice = strikeData['strikePrice']
-                    bidPrice = ltpData('NIFTY', strikePrice, 'CE', exprityDate)
-                    targetPrice = bidPrice + int(data['target_price'])
-                    stopLossPrice = bidPrice - (int(data['target_price']) / 2)
-                if data['buy_or_sale'] == 'SELL':
-                    call_or_put = 'PUT'
-                    strikeData = up_price[0]
-                    strikePrice = strikeData['strikePrice']
-                    bidPrice = ltpData('NIFTY', strikePrice, 'PE', exprityDate)
-                    targetPrice = bidPrice + int(data['target_price'])
-                    stopLossPrice = bidPrice - (int(data['target_price']) / 2)
-                if bidPrice:
-                    sell_data = stock_detail.objects.create(
-                        status="BUY", 
-                        qty= int(data['quantity'])*15, 
-                        buy_price = bidPrice, 
-                        base_strike_price=strikePrice, 
-                        live_Strike_price=livePrice, 
-                        live_brid_price=bidPrice, 
-                        sell_price= targetPrice ,
-                        stop_loseprice=stopLossPrice, 
-                        percentage_id=OptionId_CALL , 
-                        call_put =call_or_put, 
-                        buy_pcr = '%.2f'% (pcr) 
-                        )
-                    if is_live_nifty == True:
-                        sellFunOption(strikePrice, bidPrice, data['target_price'], str(int(data['target_price']) / 2), OptionId_CALL, data['quantity'], sell_data.id, exprityDate)    
-                    consoleGreen.print(f'NIFTY SUCCESS BUY AT: {end_time} -> buyPrice: {bidPrice}')
+                    bidPrice = 0
+                    if data['buy_or_sale'] == 'BUY':
+                        call_or_put = 'CALL'
+                        OptionId = OptionId_CALL
+                        strikeData = down_price[-1]
+                        strikePrice = strikeData['strikePrice']
+                        bidPrice = ltpData('NIFTY', strikePrice, 'CE', exprityDate)
+                        targetPrice = bidPrice + int(data['target_price'])
+                        stopLossPrice = bidPrice - (int(data['target_price']) / 2)
+                        file.write(f'{call_or_put} BUY -> strikePrice: {strikePrice}, bidPrice: {bidPrice} \n')                   
+                    if data['buy_or_sale'] == 'SELL':
+                        call_or_put = 'PUT'
+                        OptionId = OptionId_PUT
+                        strikeData = up_price[0]
+                        strikePrice = strikeData['strikePrice']
+                        bidPrice = ltpData('NIFTY', strikePrice, 'PE', exprityDate)
+                        targetPrice = bidPrice + int(data['target_price'])
+                        stopLossPrice = bidPrice - (int(data['target_price']) / 2)
+                        file.write(f'{call_or_put} BUY -> strikePrice: {strikePrice}, bidPrice: {bidPrice} \n')  
+                    if bidPrice:
+                        sell_data = stock_detail.objects.create(
+                            status="BUY", 
+                            qty= int(data['quantity'])*15, 
+                            buy_price = bidPrice, 
+                            base_strike_price=strikePrice, 
+                            live_Strike_price=livePrice, 
+                            live_brid_price=bidPrice, 
+                            sell_price= targetPrice ,
+                            stop_loseprice=stopLossPrice, 
+                            percentage_id=OptionId , 
+                            call_put =call_or_put, 
+                            buy_pcr = '%.2f'% (pcr) 
+                            )
+                        file.write(f'Trade is place at price {bidPrice} on {today.date()} {end_time} \n')
+                        if is_live_nifty == True:
+                            sellFunOption(strikePrice, bidPrice, data['target_price'], str(int(data['target_price']) / 2), OptionId_CALL, data['quantity'], sell_data.id, exprityDate)    
+                            file.write(f'SUCCESS BUY in live broker {bidPrice} on {today} {end_time} \n')
+                        consoleGreen.print(f'NIFTY SUCCESS BUY AT: {end_time} -> buyPrice: {bidPrice}')
+                        break
         else:
             consoleRed.print('Error is in api, Please check -> "currentDateGrah" API')
 

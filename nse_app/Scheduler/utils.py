@@ -37,7 +37,7 @@ def nearest_previous_15_min_from_list(time_str):
     
     previous_times = [t for t in TIMES_15_MIN if datetime.strptime(t, "%H:%M") <= time]
     
-    return max(previous_times, default="No valid previous time found")
+    return max(previous_times, default=None)
 
 
 def getSpotPriceFromDB(given_time, option, pcr_values: QuerySet[pcr_values]) -> QuerySet[pcr_values]:
