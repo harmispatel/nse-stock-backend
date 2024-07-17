@@ -236,8 +236,8 @@ def buyOnOptionGivenTime():
     if isBuyCondition == True:
         try:
             response = requests.post(url, {
-                # "date": formatDate(today)
-                'date': '2024-07-12'
+                "date": formatDate(today)
+                # 'date': '2024-07-12'
             }).json()
         except Exception as e:
             consoleRed.print('ERROR IN BANKNIFTY ------------>', 'This error is because of currentDateGrah API')        

@@ -10,3 +10,5 @@ venv
 
 
 .env
+banknifty_logs.txt
+nifty_logs.txt
