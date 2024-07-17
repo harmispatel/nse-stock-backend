@@ -240,7 +240,7 @@ def buyOnOptionGivenTime():
                 # 'date': '2024-07-12'
             }).json()
         except Exception as e:
-            consoleRed.print('ERROR IN BANKNIFTY ------------>', 'This error is because of currentDateGrah API')        
+            consoleRed.print('ERROR IN BANKNIFTY ------------> This error is because of currentDateGrah API')        
 
         if response['success'] == True:
             for data in response['data']['data']:
@@ -299,7 +299,7 @@ def buyOnOptionGivenTime():
 
                         if is_live_banknifty == True:
                             sellFunOption(strikePrice, bidPrice, data['target_price'], str(int(data['target_price']) / 2), OptionId, int(data['quantity']), sell_data.id, exprityDate)    
-                            file.write(f'SUCCESS BUY in live broker {bidPrice} on {today} {end_time} \n')
+                            file.write(f'SUCCESS BUY in live broker {bidPrice} on {today.date()} {end_time} \n')
                         consoleGreen.print(f'BANKNIFTY SUCCESS BUY AT: {end_time} -> buyPrice: {bidPrice}')
                         break
         else:
@@ -312,7 +312,7 @@ def callBuy():
             call_call = "CALL"
             basePricePlus_CALL = nbpd['strikePrice'] + basePlus_CALL
             basePricePlus_CALL_a = basePricePlus_CALL - 15
-            print('-------------------------------------------------------------------> BANKNIFTY CE:', basePricePlus_CALL_a,'<', livePrice,'<', basePricePlus_CALL)
+            print(f'-------------------------------------------------------------------> BANKNIFTY CE: {basePricePlus_CALL_a} < {livePrice} < {basePricePlus_CALL}')
             if basePricePlus_CALL_a <= livePrice and livePrice <= basePricePlus_CALL:
                 BidPrice_CE = nbpd['CE']['bidprice']
                 strikePrice_CE = nbpd['strikePrice']
@@ -337,7 +337,7 @@ def callBuy():
                 )
                 if is_live_banknifty == True:
                     sellFunOption(strikePrice_CE, BidPrice_CE, squareoff_CE, stoploss_CE, OptionId_CALL, lot_size_CALL, obj_banknifty_old.id, exprityDate)
-                print('SuccessFully Buy IN BANKNIFTY CALL: ', postData) 
+                print(f'SuccessFully Buy IN BANKNIFTY CALL: {postData}') 
 
 
 def putBuy():
@@ -347,7 +347,7 @@ def putBuy():
             put_put = "PUT"
             basePricePlus_PUT = bpu['strikePrice'] + basePlus_PUT
             basePricePlus_PUT_a = basePricePlus_PUT + 15
-            print('-------------------------------------------------------------------> BANKNIFTY PE:',basePricePlus_PUT, '<', livePrice, '<', basePricePlus_PUT_a )
+            print(f'-------------------------------------------------------------------> BANKNIFTY PE: {basePricePlus_PUT} < {livePrice}, < {basePricePlus_PUT_a}')
             if basePricePlus_PUT <= livePrice and livePrice <= basePricePlus_PUT_a:
                 BidPrice_PUT = bpu['PE']['bidprice']
                 strikePrice_PUT = bpu['strikePrice']
@@ -372,7 +372,7 @@ def putBuy():
                     )
                 if is_live_banknifty == True:
                     sellFunOption(strikePrice_PUT, BidPrice_PUT, squareoff_PUT, stoploss_PUT, OptionId_PUT, lot_size_PUT, obj_banknifty_old.id, exprityDate)
-                print('SuccessFully Buy IN BANKNIFTY PUT: ',postData)
+                print(f'SuccessFully Buy IN BANKNIFTY PUT: {postData}')
 
 
 def futureBuy():
@@ -381,7 +381,7 @@ def futureBuy():
         for nbpd in base_Price_down:
             basePricePlus_FUT = nbpd['strikePrice'] + basePlus_CALL
             basePricePlus_FUT_a = basePricePlus_FUT - 15
-            print('-------------------------------------------------------------------> BANKNIFTY FUTURE BUY:', basePricePlus_FUT_a,'<', livePrice,'<', basePricePlus_FUT)
+            print(f'-------------------------------------------------------------------> BANKNIFTY FUTURE BUY: {basePricePlus_FUT_a} < {livePrice} <  {basePricePlus_FUT}')
             if basePricePlus_FUT_a <= livePrice and livePrice <= basePricePlus_FUT:
                 liveFuture = futureLivePrice('BANKNIFTY')
                 postData = { "buy_price": liveFuture, "sell_price": (liveFuture + profitFuture), "stop_loseprice": (liveFuture - lossFuture), 'percentage': OptionId_Future, 'type': 'BUY'}
@@ -414,7 +414,7 @@ def futureBuy():
                     percentage_id=OptionId_Future, 
                     buy_pcr = '%.2f'% (pcr) 
                     )
-                print('Successfully BUY FUTURE: ', postData)
+                print(f'Successfully BUY FUTURE: {postData}')
 
 
 def futureSell():
@@ -423,7 +423,7 @@ def futureSell():
         for bpu in base_Price_up:
             basePricePlus_PUT = bpu['strikePrice'] + basePlus_PUT
             basePricePlus_PUT_a = basePricePlus_PUT + 15
-            print('-------------------------------------------------------------------> BANKNIFTY FUTURE SELL:',basePricePlus_PUT, '<', livePrice, '<', basePricePlus_PUT_a )
+            print(f'-------------------------------------------------------------------> BANKNIFTY FUTURE SELL: {basePricePlus_PUT} < {livePrice} < {basePricePlus_PUT_a}' )
             if basePricePlus_PUT <= livePrice and livePrice <= basePricePlus_PUT_a:
                 liveFuture = futureLivePrice('BANKNIFTY')
                 postData = { "buy_price": liveFuture, "sell_price": (liveFuture - profitFuture), "stop_loseprice": (liveFuture + lossFuture), 'percentage': OptionId_Future, 'type': 'SELL'}
@@ -455,7 +455,7 @@ def futureSell():
                     percentage_id=OptionId_Future, 
                     buy_pcr = '%.2f'% (pcr) 
                     )
-                print('Successfully SELL FUTURE: ', postData)
+                print(f'Successfully SELL FUTURE: {postData}')
 
 
 def sell_stock_logic(stock_data, optionId, filteredData,  pcr):
@@ -472,7 +472,7 @@ def sell_stock_logic(stock_data, optionId, filteredData,  pcr):
             elif i['call_put'] == 'PUT': ce_pe = 'PE'
             liveBidPrice = ltpData('BANKNIFTY', strikePrice, ce_pe, exprityDate)
             
-            print('BANKNIFTY', ce_pe, '--->', 'buy_price:', buy_price, 'target_price:', sell_price, 'liveBidPrice:', liveBidPrice, 'stop_Losss:', stop_loseprice)
+            print(f'BANKNIFTY {ce_pe} ---> buy_price: {buy_price} target_price: {sell_price} liveBidPrice: {liveBidPrice} stop_Losss: {stop_loseprice}')
             if i['admin_call'] == True:
                 if buy_price < liveBidPrice:
                     final_status = 'PROFIT'
@@ -484,7 +484,7 @@ def sell_stock_logic(stock_data, optionId, filteredData,  pcr):
             if sell_price <= liveBidPrice :
                 final_status = "PROFIT"
                 stock_detail.objects.filter(id=id).update(status = 'SELL', oi_diff = oiDiff(filteredData, strikePrice), exit_price = liveBidPrice, sell_buy_time=sell_time, final_status = final_status, admin_call= True, exit_pcr= '%.2f'% (pcr))
-                print("SuccessFully SELL STOCK OF",ce_pe)
+                print("SuccessFully SELL STOCK OF", ce_pe)
             if stop_loseprice >= liveBidPrice:
                 final_status = "LOSS"
                 stock_detail.objects.filter(id=id).update(status = 'SELL', oi_diff = oiDiff(filteredData, strikePrice), exit_price = liveBidPrice, sell_buy_time=sell_time, final_status = final_status,admin_call = True, exit_pcr= '%.2f'% (pcr) )
@@ -507,7 +507,7 @@ def futureExitStock():
             id = sell['id']
             
             if sell['type'] == 'BUY':
-                consoleGreen.print('BANKNIFTY FUTURE BUY--->', 'buy_price:', buy_price, 'target_price:', sell_price, 'liveBidPrice:', futureLive, 'stop_Losss:', stop_loseprice)
+                consoleGreen.print(f'BANKNIFTY FUTURE BUY---> buy_price: {buy_price} target_price: {sell_price} liveBidPrice: {futureLive} stop_Losss: {stop_loseprice}')
                 if sell_price <= futureLive :
                     final_status = "PROFIT"
                     stock_detail.objects.filter(id=id).update(status = 'SELL', oi_diff = oiDiff(filteredData, strikePrice), exit_price = futureLive, sell_buy_time=sell_time, final_status = final_status, admin_call= True, exit_pcr= '%.2f'% (pcr))
@@ -524,7 +524,7 @@ def futureExitStock():
                     stock_detail.objects.filter(id=id).update(status = 'SELL', oi_diff = oiDiff(filteredData, strikePrice), exit_price = futureLive, sell_buy_time=sell_time, final_status = final_status, exit_pcr= '%.2f'% (pcr))
                     print("Successfully SELL STOCK OF")
             elif sell['type'] == 'SELL':
-                consoleGreen.print('BANKNIFTY FUTURE SELL--->', 'buy_price:', buy_price, 'target_price:', sell_price, 'liveBidPrice:', futureLive, 'stop_Losss:', stop_loseprice)
+                consoleGreen.print(f'BANKNIFTY FUTURE SELL---> buy_price: {buy_price}, target_price: {sell_price}, liveBidPrice: {futureLive}, stop_Losss: {stop_loseprice}')
                 if sell_price >= futureLive :
                     final_status = "PROFIT"
                     stock_detail.objects.filter(id=id).update(status = 'SELL', oi_diff = oiDiff(filteredData, strikePrice), exit_price = futureLive, sell_buy_time=sell_time, final_status = final_status, admin_call= True, exit_pcr= '%.2f'% (pcr))

@@ -293,7 +293,7 @@ def buyOnOptionGivenTime():
                         file.write(f'Trade is place at price {bidPrice} on {today.date()} {end_time} \n')
                         if is_live_nifty == True:
                             sellFunOption(strikePrice, bidPrice, data['target_price'], str(int(data['target_price']) / 2), OptionId_CALL, data['quantity'], sell_data.id, exprityDate)    
-                            file.write(f'SUCCESS BUY in live broker {bidPrice} on {today} {end_time} \n')
+                            file.write(f'NIFTY SUCCESS BUY in live broker {bidPrice} on {today.date()} {end_time} \n')
                         consoleGreen.print(f'NIFTY SUCCESS BUY AT: {end_time} -> buyPrice: {bidPrice}')
                         break
         else:
@@ -313,7 +313,7 @@ def sell_stock_logic(stock_data, optionId, filteredData,  pcr):
             elif i['call_put'] == 'PUT': ce_pe = 'PE'
             liveBidPrice = ltpData('NIFTY', strikePrice, ce_pe, exprityDate)
             
-            print('NIFTY', ce_pe, '--->', 'buy_price:', buy_price, 'target_price:', sell_price, 'liveBidPrice:', liveBidPrice, 'stop_Losss:', stop_loseprice)
+            print(f'NIFTY {ce_pe} ---> buy_price: {buy_price} target_price: {sell_price} liveBidPrice: {liveBidPrice} stop_Losss: {stop_loseprice}')
             if i['admin_call'] == True:
                 if buy_price < liveBidPrice:
                     final_status = 'PROFIT'
