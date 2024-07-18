@@ -69,7 +69,7 @@ def getTokenInfo(symbol, exch_seg='NSE', instrumenttype='OPTIDX', strike_price='
     #     return df[(df['exch_seg'] == 'NFO') & (df['instrumenttype'] == instrumenttype) & (df['name'] == symbol)].sort_values(by=['expiry'])
 
 
-def sellFunOption(strikePrice, BidPrice, squareoff, stoploss, OptionId, lots, id, exprityDate):
+def sellFunOption(strikePrice, BidPrice, squareoff, stoploss, OptionId, lots: int, id, exprityDate):
 
     base_strike_price_sm = float(strikePrice)
     buy_price_sm = str(BidPrice)

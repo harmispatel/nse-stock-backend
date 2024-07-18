@@ -3,6 +3,7 @@ bank_nifty.txt
 data.csv
 *.pyc
 __pycache__/
+.vscode
 
 # environments
 venv

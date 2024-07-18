@@ -298,8 +298,12 @@ def buyOnOptionGivenTime():
                         file.write(f'Trade is place at price {bidPrice} on {today.date()} {end_time} \n')
 
                         if is_live_banknifty == True:
-                            sellFunOption(strikePrice, bidPrice, data['target_price'], str(int(data['target_price']) / 2), OptionId, int(data['quantity']), sell_data.id, exprityDate)    
-                            file.write(f'SUCCESS BUY in live broker {bidPrice} on {today.date()} {end_time} \n')
+                            try:
+                                sellFunOption(strikePrice, bidPrice, data['target_price'], str(int(data['target_price']) / 2), OptionId, int(data['quantity']), sell_data.id, exprityDate)    
+                                file.write(f'SUCCESS BUY in live broker {bidPrice} on {today.date()} {end_time} \n')
+                            except Exception as e:
+                                file.write(f'ERROR -----------------> GETTING ERROR WHILE PLACING TRADE IN LIVE MARKET -> {str(e)} \n')
+                                print(f'GETTING ERROR WHILE PLACING TRADE IN LIVE MARKET -> {str(e)}')
                         consoleGreen.print(f'BANKNIFTY SUCCESS BUY AT: {end_time} -> buyPrice: {bidPrice}')
                         break
         else:
