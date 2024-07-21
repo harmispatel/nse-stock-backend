@@ -10,7 +10,7 @@ from .helper import Helper
 from .sell_function import sellFunOption, futureLivePrice, optionFuture, ltpData
 import os
 from dotenv import load_dotenv
-from .utils import formatTime, oiDiff, formatDate, nearest_previous_15_min_from_list, getSpotPriceFromDB
+from .utils import cPrint, cLogs, currentDateTime, formatTime, get_daily_log_file, oiDiff, formatDate, nearest_previous_15_min_from_list, getSpotPriceFromDB
 from nse_app.utils import api_headers
 load_dotenv()
 
@@ -33,10 +33,13 @@ def bankniftyApiFun():
     global up_first_total_oi, down_first_total_oi, CEMaxValue, PEMaxValue, exprityDate, oi_total_call, oi_total_put
 
     url = BANKNIFTY_URL
+    file = open(get_daily_log_file('banknifty'), "a")
     try:
         api_data = requests.get(url, headers=api_headers).json()
     except Exception as e:
-        consoleRed.print('ERROR IN BANKNIFTY ------------>', 'This error is because of NSE banknifty API')
+        consoleRed.print(f'{currentDateTime()} ::: BANKNIFTY -----> ERROR in nse banknifty API -> {str(e)}')
+        cLogs(file, f'-------> ERROR in nse banknifty API -> {str(e)}', False)
+
     
     timestamp = api_data['records']['timestamp']
     livePrice = api_data['records']['underlyingValue']
@@ -108,6 +111,7 @@ def settingFun():
     global used_logic_put, used_logic_call, oi_total_put, oi_total_call, profitFuture, lossFuture, lotSizeFuture
     global OptionId_CALL, OptionId_PUT, OptionId_Future
     global setBuyCondition_CALL, setOneStock_CALL, setBuyCondition_PUT, setOneStock_PUT, setBuyConditionFutureBuy, setBuyConditionFutureSell
+    file = open(get_daily_log_file('banknifty'), "a")
 
     ## LOCAL SETTINGS 
     stock_details = stock_detail.objects.values().order_by("-buy_time")[:50]
@@ -132,7 +136,9 @@ def settingFun():
     try:
         settings_data = requests.get(settings_url).json()
     except Exception as e:
-        consoleRed.print('ERROR IN BANKNIFTY ------------>', 'This error is because of setting API')
+        consoleRed.print(f'{currentDateTime()} ::: BANKNIFTY -------> ERROR in settings API -> {str(e)}')
+        cLogs(file, f'-------> ERROR in settings API -> {str(e)}')
+
     settings_data_api = settings_data['data']
     is_live_banknifty = settings_data['liveSettings'][0]['live_banknifty']
     is_op_fut_banknifty = settings_data['liveSettings'][0]['op_fut_banknifty']
@@ -227,12 +233,13 @@ def BANKNIFTY():
 
 def buyOnOptionGivenTime():
     ''' 
-        Automactically buy on specific exact time
+        Automactically buy on specific time
         Strike price: first In the money
     '''
     url = 'https://nseindia.harmistechnology.com/api/currentDateGrah'
     isBuyCondition = Helper.isBuyCondition(stock_details, OptionId_CALL)
 
+    file = open(get_daily_log_file('banknifty'), "a")
     if isBuyCondition == True:
         try:
             response = requests.post(url, {
@@ -240,17 +247,17 @@ def buyOnOptionGivenTime():
                 # 'date': '2024-07-12'
             }).json()
         except Exception as e:
-            consoleRed.print('ERROR IN BANKNIFTY ------------> This error is because of currentDateGrah API')        
+            consoleRed.print(f'{currentDateTime()} ::: BANKNIFTY -------> ERROR - currentDateGrah API failed -> {str(e)}')        
+            cLogs(file, f'-------> ERROR - currentDateGrah API failed -> {str(e)}')
 
         if response['success'] == True:
             for data in response['data']['data']:
                 # data = response['data']['data'][0]
                 end_time = formatTime(data['end_time'])
-                print('BankNifty -------->', end_time, '==',  formatTime(current_time))
+                cLogs(file, f'BANKNIFTY --> end_time: {end_time} - current_time: {formatTime(current_time)} ')
 
                 if end_time == formatTime(current_time) and data['featureby_or_optionby'] == 'Option' and (data['nifty_or_banknifty'] == 'BANKNIFTY' or data['nifty_or_banknifty'] == 'Both'):
-                    file = open("banknifty_logs.txt", "a")
-                    file.write(f'-------------> BANKNIFTY BUYING ON {today.date()} at {end_time} \n')  
+                    cLogs(file, f'=============> BUYING ON {today.date()} at {end_time} ')  
                     if  data['buy_or_sale'] != 'BUY' or 'SELL': 
                         nearest_previous_15_min = nearest_previous_15_min_from_list(formatTime(current_time))
                         if nearest_previous_15_min != None:
@@ -261,6 +268,10 @@ def buyOnOptionGivenTime():
                                 else:
                                     data['buy_or_sale'] = 'BUY'
 
+                    if data['buy_or_sale'] != 'BUY' and data['buy_or_sale'] != 'SELL':
+                        buy_or_sale = data['buy_or_sale']
+                        cLogs(file, f'BANKNIFTY - CAN NOT FIND buy_or_sale status to place order -> buy_or_sale: {buy_or_sale}, record_given_time: {str(record_given_time)}, record_15_min_before: {str(record_15_min_before)}')
+
                     bidPrice = 0
                     if data['buy_or_sale'] == 'BUY':
                         call_or_put = 'CALL'
@@ -270,7 +281,7 @@ def buyOnOptionGivenTime():
                         bidPrice = ltpData('BANKNIFTY', strikePrice, 'CE', exprityDate)
                         targetPrice = bidPrice + int(data['target_price'])
                         stopLossPrice = bidPrice - (int(data['target_price']) / 2)
-                        file.write(f'{call_or_put} BUY -> strikePrice: {strikePrice}, bidPrice: {bidPrice} \n')
+                        cLogs(file, f'{call_or_put} BUY -> strikePrice: {strikePrice}, bidPrice: {bidPrice} ')
                     if data['buy_or_sale'] == 'SELL':
                         call_or_put = 'PUT'
                         OptionId = OptionId_PUT
@@ -279,7 +290,7 @@ def buyOnOptionGivenTime():
                         bidPrice = ltpData('BANKNIFTY', strikePrice, 'PE', exprityDate)
                         targetPrice = bidPrice + int(data['target_price'])
                         stopLossPrice = bidPrice - (int(data['target_price']) / 2)
-                        file.write(f'{call_or_put} BUY -> strikePrice: {strikePrice}, bidPrice: {bidPrice} \n')  
+                        cLogs(file, f'{call_or_put} BUY -> strikePrice: {strikePrice}, bidPrice: {bidPrice} ')
 
                     if bidPrice:
                         sell_data = stock_detail.objects.create(
@@ -295,20 +306,20 @@ def buyOnOptionGivenTime():
                             call_put =call_or_put, 
                             buy_pcr = '%.2f'% (pcr) 
                         )
-                        file.write(f'Trade is place at price {bidPrice} on {today.date()} {end_time} \n')
+                        cLogs(file, f'BANKNIFTY Trade is placed in db at price {bidPrice} on {today.date()} {formatTime(current_time)} ')
 
                         if is_live_banknifty == True:
                             try:
                                 sellFunOption(strikePrice, bidPrice, data['target_price'], str(int(data['target_price']) / 2), OptionId, int(data['quantity']), sell_data.id, exprityDate)    
-                                file.write(f'SUCCESS BUY in live broker {bidPrice} on {today.date()} {end_time} \n')
+                                cLogs(file, f'BANKNIFTY SUCCESSFULLY BUY in live broker {bidPrice} on {today.date()} {formatTime(current_time)} ')
                             except Exception as e:
-                                file.write(f'ERROR -----------------> GETTING ERROR WHILE PLACING TRADE IN LIVE MARKET -> {str(e)} \n')
-                                print(f'GETTING ERROR WHILE PLACING TRADE IN LIVE MARKET -> {str(e)}')
-                        consoleGreen.print(f'BANKNIFTY SUCCESS BUY AT: {end_time} -> buyPrice: {bidPrice}')
+                                cLogs(file, f'BANKNIFTY ERROR =======> GETTING ERROR WHILE PLACING TRADE IN LIVE BROKER -> {str(e)} ')
                         break
+                    else:
+                        cLogs(file, f'BANKNIFTY Something wrong with bidPrice and other data ')
         else:
-            consoleRed.print('Error is in api, Please check -> "currentDateGrah" API')
-            
+            consoleRed.print(f'{currentDateTime()} ::: ERROR - somthing wrong with"currentDateGrah" API')
+            cLogs(file, f'BANKNIFTY ERROR - somthing wrong with "currentDateGrah" API ', False)
 
 def callBuy():
     if is_op_fut_banknifty == 'OPTION' and setOneStock_CALL == True and setBuyCondition_CALL == True and pcr >= set_CALL_pcr:
@@ -467,6 +478,7 @@ def sell_stock_logic(stock_data, optionId, filteredData,  pcr):
     sell_time = timezone.now()
     for i in stock_data:
         if i['status'] == 'BUY' and i['percentage_id'] == optionId:
+            file = open(get_daily_log_file('banknifty'), "a")
             id = i['id'] 
             buy_price = i['buy_price'] 
             sell_price = i['sell_price']
@@ -475,8 +487,8 @@ def sell_stock_logic(stock_data, optionId, filteredData,  pcr):
             if i['call_put'] == 'CALL': ce_pe = 'CE'
             elif i['call_put'] == 'PUT': ce_pe = 'PE'
             liveBidPrice = ltpData('BANKNIFTY', strikePrice, ce_pe, exprityDate)
+            cLogs(file, f'BANKNIFTY {ce_pe} ---> buy_price: {buy_price} target_price: {sell_price} liveBidPrice: {liveBidPrice} stop_Losss: {stop_loseprice}')
             
-            print(f'BANKNIFTY {ce_pe} ---> buy_price: {buy_price} target_price: {sell_price} liveBidPrice: {liveBidPrice} stop_Losss: {stop_loseprice}')
             if i['admin_call'] == True:
                 if buy_price < liveBidPrice:
                     final_status = 'PROFIT'
@@ -484,15 +496,16 @@ def sell_stock_logic(stock_data, optionId, filteredData,  pcr):
                     final_status = 'LOSS'
                 stock_detail.objects.filter(id=id).update(status = 'SELL', oi_diff = oiDiff(filteredData, strikePrice), exit_price = liveBidPrice, sell_buy_time=sell_time, final_status = final_status, exit_pcr= '%.2f'% (pcr))
                 print("SuccessFully SELL STOCK OF", ce_pe)
+                cLogs(file, f'SuccessFully SELL STOCK OF {ce_pe}')
             
             if sell_price <= liveBidPrice :
                 final_status = "PROFIT"
                 stock_detail.objects.filter(id=id).update(status = 'SELL', oi_diff = oiDiff(filteredData, strikePrice), exit_price = liveBidPrice, sell_buy_time=sell_time, final_status = final_status, admin_call= True, exit_pcr= '%.2f'% (pcr))
-                print("SuccessFully SELL STOCK OF", ce_pe)
+                cLogs(file, f'SuccessFully SELL STOCK OF {ce_pe}')
             if stop_loseprice >= liveBidPrice:
                 final_status = "LOSS"
                 stock_detail.objects.filter(id=id).update(status = 'SELL', oi_diff = oiDiff(filteredData, strikePrice), exit_price = liveBidPrice, sell_buy_time=sell_time, final_status = final_status,admin_call = True, exit_pcr= '%.2f'% (pcr) )
-                print("SuccessFully SELL STOCK OF", ce_pe)
+                cLogs(file, f'SuccessFully SELL STOCK OF {ce_pe}')
 
 
 def futureExitStock():

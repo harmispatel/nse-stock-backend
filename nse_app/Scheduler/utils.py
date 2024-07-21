@@ -1,9 +1,11 @@
 from datetime import datetime, time
+from io import TextIOWrapper
 from nse_app.utils import TIMES_15_MIN
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import QuerySet
 from nse_app.models import pcr_values
+import os
 
 def formatTime(time_input):
     ''' return time in HH:MM format '''
@@ -64,3 +66,27 @@ def getSpotPriceFromDB(given_time, option, pcr_values: QuerySet[pcr_values]) -> 
     ).first()
 
     return record_given_time, record_15_min_before
+
+def get_daily_log_file(file: str):
+    log_dir = 'logs'
+    
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
+    log_filename = datetime.now().strftime(f"%d_%m_%Y_{file}_logs.txt")
+    log_filepath = os.path.join(log_dir, log_filename)
+
+    return log_filepath
+
+def cLogs(file: TextIOWrapper, log_message: str, is_print: bool = True):
+    current_time_formatted = datetime.now().strftime('%I:%M:%S %p')
+    file.write(f'{current_time_formatted} ::: {log_message} \n')
+    if is_print:
+        print(f'{current_time_formatted} ::: {log_message}')
+
+def cPrint(message: str):
+    current_time_formatted = datetime.now().strftime('%I:%M:%S %p')
+    print(f'{current_time_formatted} ::: {message}')
+
+def currentDateTime():
+    return datetime.now().strftime('%I:%M:%S %p')

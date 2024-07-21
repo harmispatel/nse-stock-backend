@@ -9,7 +9,7 @@ __pycache__/
 venv
 .venv
 
-
+logs
 .env
 banknifty_logs.txt
 nifty_logs.txt

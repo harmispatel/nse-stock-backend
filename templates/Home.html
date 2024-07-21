@@ -80,7 +80,10 @@
                   {% if i.percentage.option == 'STOCK FUTURE' %}
                     {{i.stock_name}} FUTURE {{ i.type }}
                   {% elif i.percentage.option == 'BANKNIFTY FUTURE' or 'NIFTY FUTURE' %}
-                  {{i.percentage}} {{ i.type }}
+                  {{i.percentage}} 
+                    {% if i.type != 'NA' %}
+                      {{ i.type }}
+                    {% endif %}
                   {% else %}
                     {{i.percentage}}
                   {% endif %}
